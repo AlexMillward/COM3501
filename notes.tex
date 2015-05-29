@@ -1,0 +1,415 @@
+\documentclass{article}
+\usepackage[margin=1in]{geometry}
+
+\newcommand{\np}{\vspace{8pt} \\}
+
+\begin{document}
+
+\tableofcontents
+\pagebreak
+
+\section{Principles of security}
+
+\subsection{Confidentiality, Integrity and Availability}
+Classically the goals of information security are defined as:
+\begin{itemize}
+	\item \textbf{Confidentiality}: information should only be accessible by authorised parties. Tools include \textbf{encryption}, \textbf{access control}, \textbf{authentication} and \textbf{physical security}.
+	\item \textbf{Integrity}: information is authentic and complete, because only authorised parties can modify it. Integrity can be assured through \textbf{backups}, \textbf{checksums} (or \textbf{hashes}/\textbf{digital signatures}) and \textbf{metadata} (who owns or has the right to modify data).
+	\item \textbf{Availability}: authorised users can access information and systems when they need to. This requires \textbf{protection of infrastructure}, \textbf{security policy} to minimise the interference from attacks on legitimate users and \textbf{computational redundancies} to cope with hardware or software failure.
+\end{itemize}
+
+\subsection{Saltzer and Schroeder principles of security}
+The eight \textbf{design principles} proposed by Saltzer and Schroeder are:
+\begin{enumerate}
+	\item \textbf{Economy of mechanism}: the design should be as simple and small as possible. Although less feasible in modern commercial systems, it can be important as larger designs can have more errors (or bugs) in them that can become attack vectors, and removing them is more difficult.
+	\item \textbf{Fail-safe defaults}: access decisions should be based on permission rather than exclusion. It is better to deny access to a legitimate users than allow it to a malicious one, particularly considering a legitimate user will report any errors in access control policy (a malicious user would evidently not), allowing for quick and safe rectification.
+	\item \textbf{Complete mediation}: every access to every object must be authorised. This forces a system-wide view of access control, including initialisation, recovery, shutdown and maintenance procedures.
+	\item \textbf{Open design}: the design should not be a secret. Security should depend on good security policy, not the ignorance of attackers. Protection \textbf{keys} should be \textbf{decoupled from the rest of the design} to facilitate review of the design without compromising security. This is particularly important for systems that are widely distributed.
+	\item \textbf{Separation of privilege}: a protection mechanism that requires \textbf{two keys} to unlock is more robust and flexible than one that requires a single key. This is simply because the two keys can be separated physically, and can be handled by separate programs, individuals or organisations. A \textbf{single failure} in security policy is \textbf{not sufficient to compromise protected information}.
+	\item \textbf{Least privilege}: every program and user should operate with the least set of privileges they require. This minimises damage that can result from error, and minimises the number of potential interactions between privileged programs so that the chance that privileges can be used in unintended ways is minimised. If a misuse occurs, auditing is easier as less users and less programs could have been responsible.
+	\item \textbf{Least common mechanism}: the resources shared or depended upon by more than one user should be minimised. Each shared mechanism represents a potential path of information between users that could result in a breach of confidentiality. As well as this, from a design perspective, serving one user sufficiently with a given set of resources is easier than serving many, as the environment is more controlled and mistakes are easier to handle.
+	\item \textbf{Psychological acceptability}: the human interface must be design for \textbf{ease of use}, so that users routinely and automatically apply the protection mechanisms correctly. This will minimise mistakes. The closer protection mechanisms are to what a user sees as necessary, the less likely it is that mistakes will occur. For example if multiple passwords are required, a user would be likely to start writing them down as they might see only a single password as necessary or manageable.
+\end{enumerate}
+
+\section{Cryptology}
+
+\subsection{Hashing}
+
+\subsubsection{Properties and usage}
+\textbf{Hashing functions} are one way functions that are easy to compute but difficult to invert (it is easy to generate a digest $ h = H(m) $ but difficult to obtain $ m $ given $ h $). Such functions are useful for authentication as they allow a system to store encrypted passwords. Password hashes are compared for verification rather than raw passwords, and if I server is compromised the attacker gains access to hashes, not passwords. Hashing functions should ideally be:
+\begin{enumerate}
+	\item \textbf{Preimage resistant}: it should be computationally infeasible to invert the hash. Longer hashes are more resistant to being inverted with \textbf{brute force} (providing random input until a matching hash is produced).
+	\item \textbf{Collision resistant}: two inputs should ideally never produce the same hash, or the chance should at least be minimised. This prevents \textbf{birthday attacks} where an attacker attempts to find two inputs that produce the same hash, and could for example use the wrong password (that produces the same hash as the right one) to gain access to an account. The \textbf{probability of finding a collision} for a b-bit hash function after $ 2^{\frac{b}{2}} $ attempts is 50\%.
+\end{enumerate}
+In the case of \textbf{passwords} it is also a possibility that two users will have the same password. Therefore if one of these users were to gain access to hashes of passwords, they would be able to identify other users with the same password and access their account. To prevent this \textbf{password salt} is used. A random string, unique to each user, is concatenated to the password prior to hashing, resulting in a longer \textbf{salted password}. This guarantees that each user has a unique password, and helps protect against \textbf{dictionary and rainbow attacks} as it increases the length of passwords.
+
+\subsubsection{Hash chains and rainbow tables}
+The optimal way of inverting a hash would be the use of a lookup table containing mappings of all possible (or at least all likely) hashes to their original plaintext equivalents. This would require a \textbf{massive amount of memory}. A solution to this is \textbf{hash chains}, that are effectively a way of \textbf{compressing mappings} between plaintexts and hashes. \np
+This is achieved by building \textbf{chains} that move between \textbf{plaintexts} and \textbf{hashes}. A \textbf{reduction function} $ R $ is used to convert hashes to plaintexts (not invert them, reduction is part of building the chain). A reduction function can be any function that converts a hash to a valid plaintext, for example the first 10 characters of the hash might be taken if you know all the passwords you are trying to crack are 10 characters. \np
+Chain $ i $ of length $ j $ is built for hashing function $ H $ as follows:
+\begin{enumerate}
+	\item Generate random valid plaintext $ m_{i,1} $ and set the `current message number' $ c $ to 1
+	\item Compute $ H(m_{i,c}) $ to produce $ h_{i,c} \in H $
+	\item Compute $ R(h_{i,c}) $ to produce $ m_{i,c+1} $
+	\item Set $ c = c + 1 $, return to \textit{2} unless $ c $ is equal to $ j $, in which case store the start and end of the chain, $ m_{i,1} $ and $ m_{i,j} $ \textbf{OR} $ h_{i,j} $ (either would work, original definition suggests the plaintext, the lecture notes suggest the hash)
+\end{enumerate}
+Given that many chains have been computed the following process can then be used to invert a hash:
+\begin{enumerate}
+	\item Take the hash $ h_{x} $ you want to invert, set $ c $ to 1
+	\item Check if $ h_{c} $ is identical to the end of any chain, if it is go to \textit{4}
+	\item Compute $ R(h_{c}) $ to produce $ m_{c+1} $, compute $ H(m_{c+1}) $ to produce $ h_{c+1} $, set $ c = c + 1 $ and return to \textit{2}
+	\item Get the start of the chain and use $ H $ and $ R $ to rebuilt it until $ h_{x} $ is reached, storing the plaintext used to produce each hash until the next plaintext is generated so $ m_{x} $ can retrieved once $ h_{x} $ is reached
+\end{enumerate}
+However \textbf{collisions} where two plaintexts map to one hash can become a serious problem in terms of efficiency, as two chains can converge into one whenever the same hash is reached by two different plaintexts, as the remainder of the chain will be identical. This is resolved by the application of \textbf{rainbow tables}, where different reduction functions are used at each stage of a chain ($ R_{i} $ applied to $ h_{i} $ for $ i \in \{1..j\} $), which means if the same hash is reached at different stages in a chain they are reduced to different plaintexts, preventing convergences due to collision.
+
+\subsection{Encryption and decryption}
+
+\subsubsection{Algorithm properties}
+Encryption and decryption algorithms must be \textbf{bijective}. For every plaintext (element of set $ M $) there is a unique ciphertext (element of set $ C $) and vice versa.
+\begin{itemize}
+	\item $ f : M \rightarrow C $ is the \textbf{encryption transformation}
+	\item $ f^{-1} : C \rightarrow M $ is the \textbf{corresponding decryption transformation}
+\end{itemize}
+A \textbf{cryptanalyst} could know parts of $ M $, $ C $ or both and can perpetrate different kinds of attacks to find encryption key $ k $ using either ciphertext, or known pairs of plaintext and ciphertext.
+
+\subsubsection{Symmetric encryption}
+\textbf{Stream ciphers} are an example of \textbf{symmetric encryption}. Each digit in a \textbf{plaintext stream} is encrypted with a digit of the \textbf{keystream}. Examples of stream ciphers include Caesar and Viginere ciphers as well as one time pad. \np
+\textbf{Block ciphers} encrypt blocks of text, padding if necessary. Examples include the Playfair and Hill ciphers.
+
+\subsection{Asymmetric encryption}
+For symmetric encryption, the encryption and decryption keys are the same. For \textbf{asymmetric encryption} a \textbf{public key} is used by anyone to encrypt a message, that can only then be decrypted with a \textbf{private key} held by the individual who generated both keys. Such encryption methods depend largely on \textbf{prime numbers} and \textbf{modular arithmetic}.
+
+\subsubsection{The RSA algorithm}
+The RSA (Rivest, Shamir, Adleman) algorithm is as follows:
+\begin{enumerate}
+	\item Choose two prime numbers $ p $ and $ q $, and compute $ n = pq $
+	\item Compute $ \varphi(n) = (p-1)(q-1) $
+	\item Choose $ e $, where $ 1 < e < \varphi(n) $ and $ \varphi(n) $ and $ e $ are coprime (greatest common divisor of 1), the easiest way is to choose a prime number and then check it is not a divisor of $ \varphi(n) $
+	\item Compute $ d $ where $ de = 1\ mod\ \varphi(n) $ (can be done using the \textbf{extended Euclidean algorithm}: resolve $ d $ for $ e \times d + \varphi(n) \times y = 1 $, $ y $ is also found by applying the Euclidean algorithm but is unused)
+\end{enumerate}
+With the \textbf{public encryption key} $ e $ ($ e $ and $ n $ are made public) and \textbf{private decryption key} $ d $, encryption is achieved using $ c = m^{e} mod\ n $ and decryption using $ c = m^{e} mod\ n $. The algorithm is so good because to obtain $ d $, $ \varphi(n) $ and therefore $ p $ and $ q $ are required, that can only be obtained by factoring $ n $. There is no way of doing this in a computationally feasible timeframe for large numbers (the largest that has been factored is 768 bits, taking 2000 CPU years and factoring time increases exponentially with input size). \np
+\textbf{RSA} has a number of \textbf{mathematical vulnerabilities}:
+\begin{itemize}
+	\item An attacker only has to search for $ p $ and $ q $ that are smaller than $ \sqrt{n} $, and so if $ p $ and $ q $ are too small factorising times become computationally feasible.
+	\item If $ e $ is small, and the same message is sent with different keys, $ n $ for each message (which is public) combined with each encrypted message could be used to find the message (although no keys).
+	\item If $ d $ is small ($ d < \frac{1}{3} n^{\frac{1}{4}} $) $ e, n $ can be used to retrieve it mathematically through Wiener's attack.
+	\item If $ n $ is common for all entities, then knowing \textbf{any} key pairs $ (e, d) $ allows $ n $ to be factored because of the mathematical relationship between $ n $, $ e $ and $ d $. Once $ p $ and $ q $ are known, any $ e $ can be used to find $ d $.
+	\item If $ P = NP $ then RSA is intrinsically flawed, as polynomial complexity factorising of $ n $ is possible, the method is just currently unknown.
+	\item If \textbf{quantum computing} progresses sufficiently, Shor's algorithm could be used to retrieve the prime factors of $ n $ in polynomial time, however the largest number factored in this way to date is 15. \textbf{Quantum encryption} provides superior methods of communicating securely.
+\end{itemize}
+With the exception of potential theoretical limitations, the best way of overcoming mathematical vulnerabilities is to use a large $ p $, $ q $, $ e $ and $ d $ (and therefore $ n $), using a different $ n $ for each entity that is encrypted. RSA can also have \textbf{implementation vulnerabilities}:
+\begin{itemize}
+	\item RSA is \textbf{deterministic}, the same plaintext will produce the same ciphertext, so if $ A $ sends a message, $ B $ could try encrypting likely messages until one matched, at which case they would know what was sent. This can be prevented with \textbf{random padding}.
+	\item \textbf{Timing attacks} exploiting the fact that repeating squares is used for decryption efficiency. $ d $ can be read one bit at a time, as each bit is iterated through where $ d $ is 1 execution will take longer (would be a very complex attack). Similarly \textbf{fault insertion attacks} would rely on manipulating decryption by inserting errors or faults to exploit bugs.
+	\item \textbf{Security policy} if $ d $ is not kept secret, $ p $ or $ q $ aren't destroyed, or the plaintext is simply revealed through failures elsewhere.
+\end{itemize}
+Protection involves ensuring keys are stored securely, plaintext is destroyed once encrypted, encoding messages prior to RSA encryption and protecting against \textbf{side-channel attacks} (analysis of the physical operation of a cryptosystem) with specific APIs or modules.
+
+\subsection{Hybrid cryptosystems}
+\textbf{Asymmetric cryptosystems} are \textbf{computationally expensive}, and so quite often they are only used to \textbf{establish symmetric keys}. This allows for the efficiency of symmetric systems to be combined with the security of asymmetric systems.
+
+\subsubsection{Diffie-Hellman key exchange}
+Let $ p $ be a prime number, and $ g $ be a \textbf{generator} (primitive root) that both $ A $ and $ B $ know. $ A $ chooses a private integer $ x $, $ B $ chooses a private integer $ y $.
+\begin{enumerate}
+	\item $ A \rightarrow B : g^{x} mod\ p $
+	\item $ B \rightarrow A : g^{y} mod\ p $
+	\item \textbf{Both compute symmetric key} $ K = g^{xy} mod\ p $
+	\begin{itemize}
+		\item $ A $ takes $ \left( g^{y} \right)^{x} mod\ p $
+		\item $ B $ takes $ \left( g^{x} \right)^{y} mod\ p $
+	\end{itemize}
+	\item $ A \rightarrow B : \{ M \}_{K} $
+\end{enumerate}
+The security of Diffie-Hellman depends on the difficult of calculating $ K $ given the public keys $ p $ and $ g $, and the exchanged numbers $ g^{x} mod\ p $ and $ g^{y} mod\ p $. $ x $ and $ y $ must be discarded. \np
+If $ g $ and $ p $ are \textbf{publicly known} then Diffie-Hellman is vulnerable to a \textbf{man in the middle} attack. An attacker $ E $ can intercept the first messages from both $ A $ and $ B $ and respond with their own private integers for each. This would allow them to intercept messages from both $ A $ and $ B $, and modify them before relaying them to the other legitimate party.
+
+\section{Authentication}
+
+\subsection{Problems with protocols}
+
+\subsubsection{`Who goes there?' protocol}
+Simple \textbf{token authentication}. Used to allow cars into and out of car parks.
+\begin{enumerate}
+	\item $ A \rightarrow B : T $
+	\item $ A \rightarrow B : \{ T, N \}_{KT} $
+\end{enumerate}
+A car key sends a token $ T $ followed by $ T $ and a nonce $ N $ encrypted with shared key $ KT $ to the garage. If $ N $ is fresh (has not been used recently) then the garage opens the door. An eavesdropper can only know $ T $ and $ \{ T, N \}_{KT} $ and each $ \{ T, N \}_{KT} $ should be different, so a recorded transmission can't be used. However a problem arises from checking if $ N $ is fresh, as a significant number of previous $ N $ must be checked against, and therefore stored. Alternatively a counter synchronised between car keys and the garage, or a predictable random number generator could be used.
+
+\subsubsection{Challenge response protocol}
+An extension of `who goes there?' Use in engine immobilisers.
+\begin{enumerate}
+	\item $ A \rightarrow B : N $
+	\item $ B \rightarrow A : \{ T, N \}_{KT} $
+\end{enumerate}
+The engine transmits a nonce $ N $ to the car key. The car key encrypts token $ T $ and $ N $ with shared key $ KT $. The engine decrypts the message, verifies that $ T $ is valid and that $ N $ is the same, and if so the engine starts. As the engine ($ A $) generates $ N $ there is no need to check if it is fresh, and neither $ T $ or $ KT $ are transmitted in the clear. However if $ N $ is at all predictable an eavesdropper can interrogate the car key with the next $ N $, record $ \{ T, N \}_{KT} $ and transmit it to the car.
+
+\subsubsection{Two factor authentication}
+Involves a user $ U $, password generator $ P $ and server $ S $. Used for smart card readers and other systems utilising two factor authentication.
+\begin{enumerate}
+	\item $ S \rightarrow U : N $
+	\item $ U \rightarrow P : N, PIN $
+	\item $ P \rightarrow U : \{ N, PIN \}_{K} $
+	\item $ U \rightarrow S : \{ N, PIN \}_{K} $
+\end{enumerate}
+$ S $ provides a random challenge $ N $ to $ U $. $ U $ enters their secret $ PIN $ (shared by $ S $ and $ U $) into $ P $, that is also provided with $ N $. $ P $ encrypts $ N $ and $ PIN $ with $ K $ (shared by $ P $ and $ S $) and transmits it to $ S $. $ S $ decrypts the message and verifies $ N $ and $ PIN $. An eavesdropper cannot find out $ PIN $ (`transmissions' between $ P $ and $ U $ are direct and can't be intercepted). However, a \textbf{man in the middle} attack can be executed. Attacker $ M $ intercepts $ N $ from $ S $, and relays it to $ U $. $ M $ also intercepts $ \{ N, PIN \}_{K} $ from $ U $ and relays it to $ S $ , granting authorisation. $ M $ severs the connection between $ S $ and $ U $, and in the case of authentication for a bank card, has access to the account of $ U $. From the perspective of $ S $, $ M $ appears to be $ U $.
+
+\subsection{Authentication using third parties}
+
+\subsubsection{Intuition}
+The objective of $ A $ and $ B $ is to establish a session key that can be used for secure communication. Nobody else should know this session key, and $ A $ and $ B $ should be protected against man in the middle and replay attacks (use of old session keys). These vulnerabilities exist because of the protocol, not because of issues concerning cryptography.
+
+\subsubsection{Needham-Schroeder protocol}
+A protocol that appeared in 1978, where $ A $ and $ B $ attempt to establish a session key $ K_{AB} $ using trusted third party $ S $.
+\begin{enumerate}
+	\item $ A \rightarrow S : A, B, N_{A} $
+	\item $ S \rightarrow A : \{ N_{A}, B, K_{AB}, \{ K_{AB}, A \}_{K_{BS}} \}_{K_{AS}} $
+	\item $ A \rightarrow B : \{ K_{AB}, A \}_{K_{BS}} $
+	\item $ B \rightarrow A : \{ N_{B} \}_{K_{AB}}  $
+	\item $ A \rightarrow B : \{ N_{B} - 1 \}_{K_{AB}} $
+\end{enumerate}
+$ A $ initiates the protocol, stating to $ S $ that she wants to communicate securely with $ B $, and providing her nonce $ N_{A} $ (\textit{1}). $ S $ responds with a session key, a certificate for $ B $, the identity of $ B $ and $ N_{A} $ so $ A $ can determine that a replay is not taking place, encrypted with the key $ K_{AS} $ shared by $ A $ with $ S $ (\textit{2}). $ A $ passes the certificate ($ \{ K_{AB}, A \}_{K_{BS}} $) to $ B $ (\textit{3}), who then performs a challenge-response to $ A $ to confirm that she is present (\textit{4 and 5}). A \textbf{vulnerability} to \textbf{replay attacks} exists in this protocol. If an attacker $ C $, who had observed the transmission of $ \{ K_{AB}, A \}_{K_{BS}} $, were to obtain the key $ K_{AB} $ in the future by compromising $ A $, the certificate message $ \{ K_{AB}, A \}_{K_{BS}} $ could be sent to $ B $ who would accept it. $ B $ has to assume that $ K_{AB} $ is fresh as there is no way of telling if it isn't, and continue the protocol. $ C $ would now have established a session using $ K_{AB} $ with $ B $ who would believe $ C $ to be $ A $.
+
+\subsubsection{Kerberos}
+Kerberos fixes the vulnerability of the \textbf{Needham-Schroeder} protocol. \textbf{Two trusted third parties} are involved: an \textbf{authentication server} $ X $ and a \textbf{ticket granting server} $ S $. $ A $ logs onto $ X $ using a password. Assuming the password is correct, the server sends a ticket $ T_{A} $ and a session key $ K_{AS} $ encrypted with the password. $ A $ now attempts to access a resource $ B $ controlled by $ S $, and requires $ K_{AB} $, used to authenticate subsequent traffic from $ A $, that has a \textbf{lifetime} $ L $. The following listing is from \textbf{Security Engineering} by \textbf{Ross Anderson}:
+\begin{enumerate}
+	\item $ A \rightarrow S : A, B $
+	\item $ S \rightarrow A : \{ T_{S}, L, K_{AB}, B, \{ T_{S}, L, K_{AB}, A \}_{K_{BS}} \}_{K_{AS}} $
+	\item $ A \rightarrow B : \{ T_{S}, L, K_{AB}, A \}_{K_{BS}}, \{ A, T_{A} \}_{K_{AB}} $
+	\item $ B \rightarrow A : \{ T_{A} + 1 \}_{K_{AB}} $
+\end{enumerate}
+$ A $ asks $ S $ for access to $ B $ (\textit{1}). $ S $ returns  a key $ K_{AB} $ and a ticket $ \{ T_{S}, L, K_{AB}, A \}_{K_{BS}} $ (\textit{2}) that is passed to $ B $ (\textit{3}). $ B $ can decrypt the ticket using $ K_{BS} $ to retrieve $ K_{AB} $, and this also includes part of a challenge-response allowing $ B $ to confirm its presence (and successful retrieval of the session key) to $ A $ (\textit{4}). The \textbf{vulnerability} found in Needham-Schroeder has been \textbf{fixed} by using \textbf{timestamps} ($ L $) instead of nonces. $ B $ is provided with $ L $ from $ S $, through $ A $ (who doesn't have $ K_{BS} $ and so can't modify $ L $) and so can determine if $ K_{AB} $ is fresh. The following `full' listing is from the \textbf{lecture notes}:
+\begin{enumerate}
+	\item $ A \rightarrow X : N_{A}, A, S $
+	\item $ X \rightarrow A : \left\lbrace K_{AS}, N_{A}, \{ T_{X}, L, K_{AS} \}_{K_{XS}} \right\rbrace_{K_{AX}} $
+	\item $ A \rightarrow S : \left\lbrace A, B, T_{A}, \{ T_{X}, L, K_{AS} \}_{K_{XS}} \right\rbrace_{K_{AS}} $
+	\item $ S \rightarrow A : \{ T_{S}, L, K_{AB}, B, \{ T_{S}, L, K_{AB}, A \}_{K_{BS}} \}_{K_{AS}} $
+	\item $ A \rightarrow B : \{ T_{S}, L, K_{AB}, A \}_{K_{BS}}, \{ A, T_{A} \}_{K_{AB}} $
+	\item $ B \rightarrow A : \{ T_{A} + 1 \}_{K_{AB}} $
+\end{enumerate}
+Most vulnerabilities for Kerberos are \textbf{implementation vulnerabilities}. For example synchronisation issues between different machines could facilitate a complex attack regardless of the presence of $ L $, or an attacker could impersonate the authentication server $ X $ to retrieve credentials (the password) that would allow for them to impersonate $ A $.
+
+\subsection{Managing public keys}
+The aim is to \textbf{bind keys to users}, for example $ A $ to $ K_{A} $. It is difficult to guarantee this. A \textbf{certification authority} acts as a \textbf{trusted third party} that signs (guarantees) a certificate containing the user identity, valid period for the certificate and public keys for signing and encryption. A certificate can be described symbolically as:
+\[
+	C_{A} = Sig_{K_{S}}(T_{S}, L, A, K_{A}, V_{A})
+\]
+\begin{itemize}
+	\item $ Sig_{K_{S}} $: indicates the certificate is signed by the certification authority ($ S $)
+	\item $ T_{S} $: timestamp or start date of the certificate, determined by $ S $
+	\item $ L $: certificate lifetime
+	\item $ A $: identity of the certificate holder
+	\item $ K_{A}, V_{A} $: public keys for encryption and signing 
+\end{itemize}
+\textbf{GSM} is the \textbf{Global System for Mobile communications}, the most widespread application of cryptography. \textbf{GSM} phones are  \textbf{not secure} due to problems with both protocol and cryptosystems. The use of a mobile phone should guarantee call security (no eavesdropping) and location security (the user's location should remain anonymous). Temporary IDs (\textbf{TMSI}) are used as a user moves from one base station to another, but the subscriber identification (\textbf{IMSI}) is transmitted if the base station claims not to understand the TMSI so a fake base station can be used to compromise anonymity.
+
+\section{Operating system security}
+
+\subsection{Methods of access control}
+\textbf{Authentication} is only part of managing access. The principles of \textbf{least privilege} and \textbf{separation of privilege} must be applied after successful authentication. An \textbf{access control matrix} (\textbf{ACM}) defines permissions for each user, with column headings as objects, row headings as users and matrix values as binary values representing the permission level (expressed using \textit{r}, \textit{w} and \textit{x} in written form for read, write and execution rights). Although access control matrices \textbf{can} be used to implement protection mechanisms they do not scale well. \np
+Alternatively a more compact structure could define \textbf{roles} that are assigned permissions. Users are assigned  a role, and have the permissions of the role. Such roles can be expressed in hierarchies facilitating inheritance of permissions. Improvements such as this improve \textbf{economy of mechanism} and are easier for administrators to use. \np
+Access control lists (\textbf{ACLs}) are a way of storing permissions (through distributed representation of ACMs) that are well suited to environments were protection needs to be data-oriented and there are few users. Access rules are distributed into lists for each object, each of which is equivalent to a \textbf{single column} of a \textbf{access control matrix} (in that permissions for each user are still stored). ACLs are used by both \textbf{UNIX} and \textbf{Windows} (in a modified form) systems. \np
+An alternative representation of ACMs is \textbf{capabilities}, which can be seen as an inverse representation to \textbf{ACLs} where permissions are distributed into rows of the ACM. Each permission object contains permissions for a single user, for each object that permissions are required for. Use of this representation is uncommon as changing permissions for a single object can become difficult as capabilities for every user must be modified, rather than just a single ACL for the object.
+
+\subsection{Bell La Padula model}
+The \textbf{Bell La Padula} (BLP) model introduced the idea of a \textbf{reference monitor}, parts of the operating system designed to mediate access control decisions. Access control is mandatory for all objects, and is \textbf{role based}. There are multiple levels of classification (top secret, secret, confidential and unclassified), and clearance is required to read them. The system is focused on \textbf{confidentiality} as opposed to integrity or availability. \textbf{Each document} is classified at \textbf{one security level}, \textbf{each user} has clearance \textbf{up to one security level} and a document can only be accessed by users or processes with clearance at the same or higher security level. Additional `need to know' basis restrictions can be imposed on specific documents. \textbf{Information flow control} is based on \textbf{two properties}:
+\begin{enumerate}
+	\item The \textbf{simple security property}: no process may read data at a higher level (\textbf{no read up} or \textbf{NRU})
+	\item The \textbf{*-property}: no process may write to a lower level (\textbf{no write down} or \textbf{NWD})
+\end{enumerate}
+\textbf{NWD} is the critical innovation of the model, and is targeted at preventing malicious code from being effective. If a malicious \textit{unclassified} user copies across a Trojan, and a \textit{secret} level user sees and executes it, the code will be executed at the \textit{secret} level and will not be able to write to an \textit{unclassified} folder where the malicious user could read it. There are \textbf{problems} with the model. A BLP model can be defined that allows a user to request temporary declassification of a file by an administrator, without breaking any BLP assumptions. It has been proven (by John McLean) that BLP rules by themselves, in their explicit original form, are not sufficient.
+\begin{itemize}
+	\item A system can be defined without breaking them within which a user can ask a system administrator to temporarily declassify any file, allowing a low level user to view higher level documents without breaking any BLP assumptions. This is addressed by the addition of the \textbf{tranquillity property} that prevents \textbf{security labels} from changing during system operation.
+	\item Some applications might need to break security policy, for example when a document's classification level needs to be reduced, and the BLP rules doesn't cover this.
+	\item NWD results in documents accumulating at the top security level, or documents must be fragmented based on their content to prevent this.
+	\item The BLP rules do not address the creation and destruction of documents.
+	\item Applications designed to operate within more common security models (such as those found on UNIX and Windows) will not work with BLP.
+\end{itemize}
+
+\subsection{Trusted computing}
+Trusted computing is intended to assure \textbf{platform integrity} (guarantee how it will behave) using a \textbf{trusted platform module} (\textbf{TPM}). A TPM is a \textbf{secure cryptoprocessor} mounted on the motherboard. The capabilities of a TPM include:
+\begin{itemize}
+	\item Storing passwords, certificates and encryption keys
+	\item \textbf{Hardware authentication} (the ability to prove the platform is what it claims to be) and \textbf{attestation} (proving the platform is trustworthy and hasn't been breached)
+	\item Monitoring the PC as it boots, with the ability to limit access to highly secure applications if unexpected changes in the configuration have occurred
+	\item Full disk encryption implementations can use the TPM to ensure if a hard drive is installed on another machine it can't be decrypted, as the TPM contains the decryption key
+\end{itemize}
+
+\subsection{What goes wrong}
+
+\subsubsection{Root access through `setuid'}
+For a \textbf{UNIX} user to change their password, they require root access to write to the \textit{/usr/bin/passwd} file. The feature used is \textit{setuid}, that allows access without privilege and therefore causing vulnerability to attack:
+\begin{itemize}
+	\item If a file is opened by a process such as \textit{setuid} that runs as root and a child process is created, it inherits all file descriptors and could gain root access to system files. This can be fixed by ensuring all files are closed before forking a child process.
+	\item The program could close with files still open. 
+\end{itemize}
+The \textit{setuid} utility is also vulnerable to \textbf{buffer overrun} and \textbf{stack smashing} attacks.
+
+\subsubsection{Buffer overflow}
+Some languages such as C++ do not do \textbf{bounds checking} (checking the size of arguments), so part of a long argument passed to a program by an attacker may be written to memory space outside of that allocated for the data. This could allow for it to be run as code, producing the potential for an attacker to take control of a system. Trailing bytes of the argument (those beyond the intended argument length) usually have a \textbf{landing pad} of \textbf{no operation} (\textbf{NOP}) commands that are ignored during program execution, a \textbf{NOP sled}. This means that a program jump to anywhere in the large memory space covered by the `sled' will result in the malicious code at the end of it being executed in full.
+
+\subsection{Assumptions behind software}
+\begin{enumerate}
+	\item \textbf{Users are trustworthy and will supply correct input}
+	\begin{itemize}
+		\item SQL injection and buffer overflow prove this is not the case.
+		\item Can be fixed by checking input, being wary of SQL sequences and escape characters, initialising all variables, closing all files, suitable bounds checking and using memory protection where possible.
+	\end{itemize}
+	\item \textbf{It is OK to have a back door into the software that enables easy access during testing and development}
+	\begin{itemize}
+		\item This occurs frequently and functionality can be come dependent on the existence of a back door.
+		\item This can be fixed by clearly documenting the existence of the back door and ensuring its removal for deployment.
+	\end{itemize}
+	\item \textbf{All libraries, third-party resources, and other components will load correctly when an application is compiled or launched}
+	\begin{itemize}
+		\item Library code could be used for validation or authentication, resulting in unpredictable behaviour if it is missing.
+		\item A bad library might have the same name as a good library, but be higher up the search path (for package managers etc).
+		\item Unhandled exceptions are frequently associated with bugs.
+		\item These problems can be addressed by testing that components are as expected, that they load properly and through careful exception handling.
+	\end{itemize}
+	\item \textbf{Data can be trusted implicitly}
+	\begin{itemize}
+		\item Trust may be extended based on identification without authorisation.
+		\item \textbf{Complete mediation} must be enforced to prevent this.
+	\end{itemize}
+	\item \textbf{It is OK to use temporary files to store data when they are too large to hold in memory}
+	\begin{itemize}
+		\item Cookies are usually stored and transmitted in plaintext, and the same applies for other temporary files.
+		\item Can be fixed by \textbf{never} storing secure data to a temporary file unless it has been suitably encrypted.
+	\end{itemize}
+	\item \textbf{The OS will manage process execution in a synchronised manner}
+	\begin{itemize}
+		\item \textbf{Race conditions} can be used to exploit vulnerabilities.
+		\item This can be fixed by being aware that an operating system will time-slice processes.
+	\end{itemize}
+\end{enumerate}
+
+\section{Malware}
+
+\subsection{Viruses}
+A computer virus is \textbf{malicious code} that attaches itself to a host that could be another executable program, the boot sector of a disk or a document that supports macros. Viruses have been more prevalent on Windows machine as it's easier to infect files owned by other users or system files. As with biological viruses, computer viruses create copies of themselves in new hosts and infect other machines when the host is copied. \np
+\textbf{Virus detection} involves searching for the characteristics of known viruses in memory. Viruses can be designed to try and avoid detection through segmenting code, encryption and the presence of junk inbetween code segments. \textbf{Polymorphic viruses} us a different encryption key each time they copy, whilst \textbf{metamorphic viruses} mutate the junk between code segments.
+
+\subsection{Worms}
+Unlike viruses, worms do \textbf{not infect existing executables}. They are \textbf{independent processes}, meaning that they they often do not need user action to copy themselves (as a virus would). As with real world disease, the spread of a worm can be modelled based on the quantity of uninfected hosts and the infectiousness.
+\[
+	\frac{\delta I}{\delta t} = \beta I(t) [N - I(t)]
+\]
+\subsubsection{The Morris worm}
+The \textbf{Morris worm} exploited vulnerabilities in: \textbf{rsh} (allows for a remote shell to be est), \textbf{finger} (provides user information and vulnerable to buffer overflow) and \textbf{sendmail}
+\begin{itemize}
+	\item \textbf{rsh}: allows for a remote shell to be established.
+	\item \textbf{finger}: provides user information, vulnerable to buffer overflow due to use of \textbf{strcopy} C function.
+	\item \textbf{sendmail}: an email router, contained a back door that was exploited to establish a shell.
+\end{itemize}
+The worm used \textbf{rsh} or \textbf{sendmail} to establish a shell running on a target machine that was used to copy across a \textbf{grappling hook} C program that was run with command line arguments, including the IP of the source machine. The grappling hook then copied across and installed a worm binary. One installed the binary renamed itself as \textbf{sh} (a shell), gathered information about possible targets using standard utilities (such as \textbf{netstat}), used a dictionary attack to try and break user passwords and look for machines where they might have a valid login and then tried to establish a shell on target machines using vulnerabilities. \np
+Although there was \textbf{no malicious payload} but it was highly effective and damaging. The code was supposed to check for existing infections and terminate itself, but a bug meant \textbf{some infections were immortal}, overwhelming the host. Great care was taken to camouflage processes and code (hidden as shells and encrypted). \np
+The worm demonstrated the vulnerability of networked computers and the existing software infrastructure. Its creator Robert Morris was prosecuted, and the \textbf{Computer Emergency Response Team} at Carnegie Mellon University was set up as a consequence.
+
+\subsubsection{The Conficker worm}
+Exploits a vulnerability in \textbf{svchost.exe} (container for Windows services) on Windows machines. It spreads using a \textbf{buffer overflow} vulnerability in \textbf{RPC} (remote procedure call, a method of inter-process communication) and the vulnerable port 445. It can also be spread by network sharing and removable media. It attempts to gain write access with the signed in user, and failing this, cracks user passwords until write permissions are obtained. \np
+The worm has numerous variants and potential uses or symptoms such as users being locked out, remote access, disabling of Windows security measures, or recruitment of the machine to a botnet. It has \textbf{upload and download capability} and so can be used to install malware, and prevents removal through concealment and other means. Between 9-15 million Windows machines are believed to have been infected, although patches for the vulnerabilities exploited exist. Microsoft is offering \$250,000 for information leading to the arrest of its author.
+
+\subsection{Detection and removal}
+
+\subsubsection{Concepts}
+Malware can be \textbf{detected by its behaviour}. Rootkits modify operating system files, memory and registry entries. Adware, spyware and data harvesters need access to specific methods or operating system utilities that can be monitored. \np
+Writing a program that will detect all malware is impossible, as has been proven by contradiction by Fred Cohen. If a perfect malware detector \textbf{is\_malware} existed, a malware could be written that only behaved like malware if \textbf{is\_malware} called on itself returned false. This program could return neither true nor false (as an infinite loop would be produced). The question of whether such a program is malware depends on the \textbf{halting problem} and is therefore unsolvable.
+
+\subsubsection{Countermeasures and insider attacks}
+Countermeasures are largely intuitive:
+\begin{itemize}
+	\item \textbf{Optimise system diversity} - variety in operating systems and software can prevent against exploitation of specific vulnerabilities.
+	\item Good software design and coding practices.
+	\item \textbf{Avoid auto execution} of removal media.
+	\item Apply \textbf{least privilege} throughout the system.
+	\item Strong passwords, keep software updated, use anti-virus etc.
+\end{itemize}
+An \textbf{insider attack} is where a software developer intentionally leaves malicious code. A contractor who's contract had ended at Fannie Mae in 2008 left malicious code at the end of a shell script, that was discovered but that could have caused severe damage. Monitoring employee behaviour, version control (through review of modifications), software engineering principles and application of \textbf{least privilege} can help prevent this.
+
+\section{Network security}
+
+\subsection{Networking basics}
+The 5 layer network model (same as \textbf{OSI 7} but without application layer divisions):
+\begin{enumerate}
+	\item \textbf{Application}: higher level protocols associated with application data
+	\item \textbf{Transport}: enables host-to-host communication , usually through TCP or UDP on specific ports
+	\item \textbf{Internet} (or Network): routes packets through a network, each host is individually addressed
+	\item \textbf{Link}: transfer between machines on a local network, usually using Media Access Control (MAC) addresses
+	\item \textbf{Physical}: the hardware that provides the connection such as cable or wireless technology
+\end{enumerate}
+\textbf{CIA} through networks is considered as follows:
+\begin{itemize}
+	\item \textbf{Confidentiality}: not ensured by default, encryption must be done explicitly, usually at the application level.
+	\item \textbf{Integrity}: is ensured using checksums although this identifies corruption during transmission. No consideration of identity or authentication with IPv4, so again this must be ensured at the application level. This does however facilitate anonymity.
+	\item \textbf{Availability}: The ability is robust but availability of paths is difficult to guarantee. Constraints on data flow must be implemented explicitly (again usually at the application level).
+\end{itemize}
+
+\subsection{Link layer vulnerabilities}
+\textbf{ARP} (address resolution protocol) is a \textbf{link layer protocol} that resolves network layer (IP) to link layer (MAC) addresses on a local area network (LAN). ARP requests are broadcast on the LAN, and the protocol does \textbf{not include authentication}. A attacker's machine can send a forged (\textbf{spoofed}) response to an ARP request before a legitimate machine can respond, resulting in the association of the attacker's MAC address with the IP of another machine. This can facilitate \textbf{man-in-the middle} attacks where packets can be intercepted, modified or dropped. \np
+This type of attack is called \textbf{ARP cache poisoning}. It can be prevented by restricting LAN access to trusted users, certification and cross checking of ARP responses or the employment of \textbf{static ARP tables} stored on routers as \textbf{read only} (not scalable as changes mean the mapping has to be reset).
+
+\subsection{Network layer vulnerabilities}
+\begin{itemize}
+	\item Datagrams transmitted as \textbf{IP packets}, that have a specific structure including source and destination IP addresses. \textbf{IP spoofing} forges the IP source address with a different address. This can allow an attacker to probe a network without revealing their identity.
+	\item A \textbf{ping flood} is a \textbf{DDOS} (distributed denial of service) attack that floods a victim with \textbf{ICMP} (internet control message protocol) ping requests: if the target responds both ingoing and outgoing traffic are flooded.
+	\item A \textbf{Smurf attack} is a \textbf{DDOS} attack in which ICMP packets are sent to a large number of computers across a network, with the source address set to that of the victim's computer. Most computers on the network will respond, flooding the victim's incoming traffic.
+\end{itemize}
+Network layer attacks can be defended in a number of ways:
+\begin{itemize}
+ \item Blocking packets with source IPs of computers in a LAN from passing border routers from outside the LAN (would prevent a Smurf attack using computers inside of the LAN launched from outside it).
+ \item Pinging a host and comparing the TTLs (time to live) of the ping and a suspicious packet with its IP address. They should be similar and if not, the packet is likely to be spoofed.
+ \item \textbf{Authentication headers} to authenticate source addresses.
+ \item Use of \textbf{encapsulated security payloads} for encrypting packets to prevent against packet sniffing (other individuals watching network traffic and dissecting packets to retrieve their payloads and other information using tools such as Wireshark).
+ \item Reduce the size of network segments (wireless hubs serving smaller areas) so less traffic can be sniffed from a single location.
+\end{itemize}
+
+\subsection{Transport layer vulnerabilities}
+\textbf{TCP} (transmission control protocol) involves a three-way handshake to establish a connection between two hosts:
+\begin{enumerate}
+	\item $ A $ sends a SYN (synchronisation) packet with a sequence number $ x $
+	\item $ B $ responds with SYN-ACK (acknowledgement) with sequence number $ y $ and acknowledgement number $ x + 1 $
+	\item $ A $ returns ACK with sequence number $ x + 1 $ and acknowledgement number $ y + 1 $
+\end{enumerate}
+If $ E $ can predict $ x $ and $ y $ the session can be \textbf{hijacked} (a \textbf{TCP hijacking}). $ E $ denies service to $ A $ to prevent a  response. $ E $ sends SYN to $ B $ spoofing the IP of $ A $, $ E $ waits for $ B $ to respond to $ A $ and then guesses $ Y $ to send back to $ B $. $ E $ can now send packets as $ A $ to $ B $, but packets from $ B $ still go to $ A $. From this $ E $ could establish a shell or attempt to instruct $ B $ to form a two-way connection. \textbf{Complete hijacking} is possible if $ E $ can observe network traffic, and use it to predict sequence numbers. To defend against such attacks \textbf{encryption} and \textbf{authentication} at either the application (TLS/SSL) or network (IPsec) layers is required.
+
+\subsection{Application layer vulnerabilities}
+
+\subsubsection{TLS and HTTPS}
+By default HTTP requests and responses are delivered without any encryption through TCP on port 80. \textbf{TLS} (\textbf{Transport Layer Security}) provides security on top of TCP/IP, and was formerly the Secure Sockets Layer (SSL). TLS \textbf{encrypts} network traffic and \textbf{authenticates} web servers using certificates from \textbf{authentication authorities}. On the web TLS is used to provide \textbf{HTTPS} (HTTP over TLS) in which all headers, page contents and cookies are encrypted. To initiate a secure exchange between client $ A $ and server $ B $ a handshake takes place:
+\begin{enumerate}
+	\item $ A \rightarrow B : A, A\#, N_{A}, Cipher\ Preferences $ - $ A $ sends their identity, session key (\#), nonce and cipher preferences.
+	\item $ B \rightarrow A : B, B\#, N_{B}, Cipher\ Choice $ - $ B $ returns the same information but with a cipher choice \textbf{and a certificate}.
+	\item \textbf{Certificate exchange}: $ A $ compares the certificate from $ B $ to a root certificate held in the browser, or one held by a trusted third party. $ B $ may also ask $ A $ for a certificate at this point.
+	\item \textbf{Key exchange}: $ A $ computes a random pre-master key $ K_{0} $ that is sent to $ B $ encrypted with the public key of $ B $, $ K_{B} $. $ A $ and $ B $ independently compute master keys $ K_{1} $ and session keys $ K_{AB} $ form information already exchanged.
+	\begin{itemize}
+		\item $ A \rightarrow B : \{ K_{0} \}_{K_{B}} $
+		\item $ K_{1} = hash(K_{0}, N_{A}, N_{B}) $
+		\item $ K_{AB} = hash(K_{1}, N_{A}, N_{B}) $
+	\end{itemize}
+	\item $ A $ sends $ B $ `finished' together with a \textbf{message authentication code} of messages so far, encrypted with $ K_{AB} $. If $ B $ can decrypt, then $ A $ is authenticated to $ B $. Otherwise the session ends with an error.
+	\item $ B $ sends a similar message to $ A $.
+\end{enumerate}
+\textbf{Vulnerabilities} can exist where websites supply forged or expired certificates, or if a browser passes responsibility for checking an invalid certificate to the user who will often just click OK.
+
+\subsubsection{XXS (cross site scripting)}
+\textbf{XXS} or \textbf{cross site scripting} enables attackers to inject client-side script (JavaScript, ActiveX etc.) into web pages viewed by other users. It could be used to retrieve cookies or data being displayed to a user to an attacker for example. \np
+There are numerous means of achieving injection. Malicious URLs in emails could redirect to a trusted website vulnerable to XXS in a way that allows for XXS (parameters that can be set to \textbf{script} tags for example). Alternatively websites with dynamic content can be injected if data is not managed safely, for example a \textbf{script} tag could be provided as input for a profile description, and executed when another user viewed the resulting profile page.
+
+\subsubsection{SQL injection}
+Similar to some variants of \textbf{XXS}, where a user provides input that is an SQL query or part of an SQL query where one is not expected. This could be used by a malicious user to extend part of a \textbf{select} query to also retrieve confidential data about other users from a table for example. In the case of \textbf{MySQL} and other common variants this can be prevented through the use of \textbf{prepared statements}, which are part of the \textbf{MySQL protocol}.
+
+\subsection{Wireless networks}
+On a wireless network it is almost impossible to prevent silent eavesdropping with tools such as \textit{Wireshark}. Many wireless stations even broadcast the network name and security measure. Access can be restricted to a set of MAC addresses although an attacker can easily reconfigure their machine to have an authorised MAC address. \np
+\textbf{Encryption} such as \textbf{WEP} (\textbf{wired equivalent privacy}) can help, although WEP is \textbf{broken} and has been replaced with \textbf{WPA} (Wi-Fi protected access) as well as \textbf{WPA2} that enforces \textbf{AES} (advanced encryption standard) encryption. WPA uses a \textbf{four-way handshake} to establish a connection between a router and a client. It is assumed that $ AP $ (access point) and $ STA $ (client station) have a shared key $ PMK $ (pairwise master key) entered by $ A $ into their machine ($ STA $). A $ PTK $ (pairwise transient key) must be generated for encryption.
+\begin{enumerate}
+	\item $ AP \rightarrow STA : N_{A} $
+	\item $ STA \rightarrow AP : N_{S}, \{ Message\ integrity\ code\ (MIC) \}_{PTK} $
+	\item $ AP \rightarrow STA : \{ Group\ temporal\ key\ (GTK) \}_{PTK}, \{ MIC \}_{PTK} $
+	\item $ STA \rightarrow AP : Acknowledgement $
+\end{enumerate}
+The main problem with this protocol is the $ PMK $, if $ E $ knows this or obtains it by brute force she can obtain $ PTK $.
+
+\section{Forensics}
+
+
+\end{document}
