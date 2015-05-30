@@ -6,7 +6,7 @@
 \begin{document}
 
 \tableofcontents
-
+\pagebreak
 
 \section{Principles of security}
 
@@ -44,10 +44,7 @@ The eight \textbf{design principles} proposed by Saltzer and Schroeder are:
 In the case of \textbf{passwords} it is also a possibility that two users will have the same password. Therefore if one of these users were to gain access to hashes of passwords, they would be able to identify other users with the same password and access their account. To prevent this \textbf{password salt} is used. A random string, unique to each user, is concatenated to the password prior to hashing, resulting in a longer \textbf{salted password}. This guarantees that each user has a unique password, and helps protect against \textbf{dictionary and rainbow attacks} as it increases the length of passwords.
 
 \subsubsection{Hash chains and rainbow tables}
-The optimal way of inverting a hash would be the use of a lookup table containing mappings of all possible (or at least all likely) hashes to their original plaintext equivalents. This would require a \textbf{massive amount of memory}. A solution to this is \textbf{hash chains}, that are effectively a way of \textbf{compressing mappings} between plaintexts and hashes. \np
-This is achieved by building \textbf{chains} that move between \textbf{plaintexts} and \textbf{hashes}. A \textbf{reduction function} $ R $ is used to convert hashes to plaintexts (not invert them, reduction is part of building the chain). A reduction function can be any function that converts a hash to a valid plaintext, for example the first 10 characters of the hash might be taken if you know all the passwords you are trying to crack are 10 characters.
-\pagebreak
-\\
+The optimal way of inverting a hash would be the use of a lookup table containing mappings of all possible (or at least all likely) hashes to their original plaintext equivalents. This would require a \textbf{massive amount of memory}. A solution to this is \textbf{hash chains}, that are effectively a way of \textbf{compressing mappings} between plaintexts and hashes. This is achieved by building \textbf{chains} that move between \textbf{plaintexts} and \textbf{hashes}. A \textbf{reduction function} $ R $ is used to convert hashes to plaintexts (not invert them, reduction is part of building the chain). A reduction function can be any function that converts a hash to a valid plaintext, for example the first 10 characters of the hash might be taken if you know all the passwords you are trying to crack are 10 characters.
 Chain $ i $ of length $ j $ is built for hashing function $ H $ as follows:
 \begin{enumerate}
 	\item Generate random valid plaintext $ m_{i,1} $ and set the `current message number' $ c $ to 1
@@ -259,7 +256,10 @@ $ A $ asks $ S $ for access to $ B $ (\textit{1}). $ S $ returns  a key $ K_{AB}
 The most significant vulnerabilities of Kerberos are \textbf{synchronisation differences} between the clocks of different machines, either unintentionally or as part of a deliberate attack. Alternatively an attacker could impersonate the authentication server $ X $ to retrieve credentials (the password) that would allow for them to impersonate $ A $.
 
 \subsection{Managing public keys}
-The aim is to \textbf{bind keys to users}, for example $ A $ to $ K_{A} $. It is difficult to guarantee this. A \textbf{certification authority} acts as a \textbf{trusted third party} that signs (guarantees) a certificate containing the user identity, valid period for the certificate and public keys for signing and encryption. A certificate can be described symbolically as:
+The aim is to \textbf{bind keys to users}, for example $ A $ to $ K_{A} $. It is difficult to guarantee this. A \textbf{certification authority} acts as a \textbf{trusted third party} that signs (guarantees) a certificate containing the user identity, valid period for the certificate and public keys for signing and encryption.
+\pagebreak
+\\
+A certificate can be described symbolically as:
 \[
 	C_{A} = Sig_{K_{S}}(T_{S}, L, A, K_{A}, V_{A})
 \]
@@ -282,7 +282,8 @@ An alternative representation of ACMs is \textbf{capabilities}, which can be see
 Note that \textbf{Windows} attempts to \textbf{combine ACLs and capabilities} to maximise efficiency and performance.
 
 \subsection{Bell La Padula model}
-The \textbf{Bell La Padula} (BLP) model introduced the idea of a \textbf{reference monitor}, parts of the operating system designed to mediate access control decisions. Access control is mandatory for all objects, and is \textbf{role based}. There are multiple levels of classification (top secret, secret, confidential and unclassified), and clearance is required to read them. The system is focused on \textbf{confidentiality} as opposed to integrity or availability. \textbf{Each document} is classified at \textbf{one security level}, \textbf{each user} has clearance \textbf{up to one security level} and a document can only be accessed by users or processes with clearance at the same or higher security level. Additional `need to know' basis restrictions can be imposed on specific documents. \textbf{Information flow control} is based on \textbf{two properties}:
+The \textbf{Bell La Padula} (BLP) model introduced the idea of a \textbf{reference monitor}, parts of the operating system designed to mediate access control decisions. Access control is mandatory for all objects, and is \textbf{role based}. There are multiple levels of classification (top secret, secret, confidential and unclassified), and clearance is required to read them. \np
+The system is focused on \textbf{confidentiality} as opposed to integrity or availability. \textbf{Each document} is classified at \textbf{one security level}, \textbf{each user} has clearance \textbf{up to one security level} and a document can only be accessed by users or processes with clearance at the same or higher security level. Additional `need to know' basis restrictions can be imposed on specific documents. \textbf{Information flow control} is based on \textbf{two properties}:
 \begin{enumerate}
 	\item The \textbf{simple security property}: no process may read data at a higher level (\textbf{no read up} or \textbf{NRU})
 	\item The \textbf{*-property}: no process may write to a lower level (\textbf{no write down} or \textbf{NWD})
@@ -304,6 +305,8 @@ Trusted computing is intended to assure \textbf{platform integrity} (guarantee h
 	\item Monitoring the PC as it boots, with the ability to limit access to highly secure applications if unexpected changes in the configuration have occurred
 	\item Full disk encryption implementations can use the TPM to ensure if a hard drive is installed on another machine it can't be decrypted, as the TPM contains the decryption key
 \end{itemize}
+
+\pagebreak
 
 \subsection{What goes wrong}
 
