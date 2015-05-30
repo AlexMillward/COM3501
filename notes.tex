@@ -63,8 +63,6 @@ Given that many chains have been computed the following process can then be used
 However \textbf{collisions} where two plaintexts map to one hash can become a serious problem in terms of efficiency, as two chains can converge into one whenever the same hash is reached by two different plaintexts, as the remainder of the chain will be identical. This is resolved by the application of \textbf{rainbow tables}, where different reduction functions are used at each stage of a chain ($ R_{i} $ applied to $ h_{i} $ for $ i \in \{1..j\} $), which means if the same hash is reached at different stages in a chain they are reduced to different plaintexts, preventing convergences due to collision.
 
 \subsection{Encryption and decryption}
-
-\subsubsection{Algorithm properties}
 Encryption and decryption algorithms must be \textbf{bijective}. For every plaintext (element of set $ M $) there is a unique ciphertext (element of set $ C $) and vice versa.
 \begin{itemize}
 	\item $ f : M \rightarrow C $ is the \textbf{encryption transformation}
@@ -72,9 +70,78 @@ Encryption and decryption algorithms must be \textbf{bijective}. For every plain
 \end{itemize}
 A \textbf{cryptanalyst} could know parts of $ M $, $ C $ or both and can perpetrate different kinds of attacks to find encryption key $ k $ using either ciphertext, or known pairs of plaintext and ciphertext.
 
-\subsubsection{Symmetric encryption}
-\textbf{Stream ciphers} are an example of \textbf{symmetric encryption}. Each digit in a \textbf{plaintext stream} is encrypted with a digit of the \textbf{keystream}. Examples of stream ciphers include Caesar and Viginere ciphers as well as one time pad. \np
-\textbf{Block ciphers} encrypt blocks of text, padding if necessary. Examples include the Playfair and Hill ciphers.
+\subsection{Symmetric encryption}
+\textbf{Stream ciphers} are an example of \textbf{symmetric encryption}. Each digit in a \textbf{plaintext stream} is encrypted with a digit of the \textbf{keystream}. Examples of stream ciphers include \textbf{Caesar} and \textbf{Viginere} ciphers as well as \textbf{one time pad}. \np
+\textbf{Block ciphers} encrypt blocks of text, padding if necessary. Examples include the \textbf{Playfair} and \textbf{Hill} ciphers.
+
+\subsubsection{Vigenere cipher}
+The Vigenere ciper uses the representation used by most stream ciphers, that `A' = 0, `B' = 1 ... 'Z' = 25, allowing for modulo 26 arithmetic. A \textbf{running key} is used, in which the complete key is a string repeated to the length of the plaintext. For example the full key for initial key `run' used to encode string `hello' is `runru.' Encoding then takes place using:
+\[
+	C = P + K\ mod\ 26
+\]
+The plaintext is encoded one character at a time, using an offset value taken from the keystream (a stream is a string provided 1 character, or other unit, at a time) to produce the ciphertext. The \textbf{Caesar cipher} is identical to this, except the \textbf{keystream used} is the \textbf{alphabet}.
+
+\subsubsection{Hill cipher}
+In the \textbf{Hill cipher} (a block cipher), the same alphabetic representation as the Vigenere cipher is used. Messages and represented as column vectors of size $ n $, and the \textbf{encryption key} as a $ n \times n $ matrix. The \textbf{decryption key} is the inverse of the \textbf{encryption key}. To encrypt and decrypt the relevant key is multiplied by the relevant text, and the result is taken modulo 26. For example to encrypt `HI' with the key below:
+\[
+	\left(
+	\begin{array}{c c}
+		1 & 2 \\
+		2 & 1
+	\end{array}
+	\right)
+	\left(
+	\begin{array}{c}
+		7 \\
+		8
+	\end{array}
+	\right)
+	=
+	\left(
+	\begin{array}{c}
+		23 \\
+		22
+	\end{array}
+	\right)
+	mod\ 26
+\]
+So `HI' with this key encrypts to `MM.' To decrypt:
+\[
+	\left(
+	\begin{array}{c c}
+		1 & 2 \\
+		2 & 1
+	\end{array}
+	\right)^{-1}
+	=
+	\left(
+	\begin{array}{c c}
+		-\frac{1}{3} & \frac{2}{3} \\
+		\frac{2}{3} & -\frac{1}{3}
+	\end{array}
+	\right)
+	\hspace{20pt}
+	\left(
+	\begin{array}{c c}
+		-\frac{1}{3} & \frac{2}{3} \\
+		\frac{2}{3} & -\frac{1}{3}
+	\end{array}
+	\right)
+	\left(
+	\begin{array}{c}
+		23 \\
+		22
+	\end{array}
+	\right)
+	=
+	\left(
+	\begin{array}{c}
+		7 \\
+		8
+	\end{array}
+	\right)
+	mod\ 26
+\]
 
 \subsection{Asymmetric encryption}
 For symmetric encryption, the encryption and decryption keys are the same. For \textbf{asymmetric encryption} a \textbf{public key} is used by anyone to encrypt a message, that can only then be decrypted with a \textbf{private key} held by the individual who generated both keys. Such encryption methods depend largely on \textbf{prime numbers} and \textbf{modular arithmetic}.
@@ -128,20 +195,20 @@ If $ g $ and $ p $ are \textbf{publicly known} then Diffie-Hellman is vulnerable
 \subsection{Problems with protocols}
 
 \subsubsection{`Who goes there?' protocol}
-Simple \textbf{token authentication}. Used to allow cars into and out of car parks.
+Simple \textbf{token authentication}. Used to allow cars ($ C $) into and out of garages ($ G $).
 \begin{enumerate}
-	\item $ A \rightarrow B : T $
-	\item $ A \rightarrow B : \{ T, N \}_{KT} $
+	\item $ C \rightarrow G : T $
+	\item $ C \rightarrow G : \{ T, N \}_{KT} $
 \end{enumerate}
 A car key sends a token $ T $ followed by $ T $ and a nonce $ N $ encrypted with shared key $ KT $ to the garage. If $ N $ is fresh (has not been used recently) then the garage opens the door. An eavesdropper can only know $ T $ and $ \{ T, N \}_{KT} $ and each $ \{ T, N \}_{KT} $ should be different, so a recorded transmission can't be used. However a problem arises from checking if $ N $ is fresh, as a significant number of previous $ N $ must be checked against, and therefore stored. Alternatively a counter synchronised between car keys and the garage, or a predictable random number generator could be used.
 
 \subsubsection{Challenge response protocol}
 An extension of `who goes there?' Use in engine immobilisers.
 \begin{enumerate}
-	\item $ A \rightarrow B : N $
-	\item $ B \rightarrow A : \{ T, N \}_{KT} $
+	\item $ E \rightarrow K : N $
+	\item $ K \rightarrow E : \{ T, N \}_{KT} $
 \end{enumerate}
-The engine transmits a nonce $ N $ to the car key. The car key encrypts token $ T $ and $ N $ with shared key $ KT $. The engine decrypts the message, verifies that $ T $ is valid and that $ N $ is the same, and if so the engine starts. As the engine ($ A $) generates $ N $ there is no need to check if it is fresh, and neither $ T $ or $ KT $ are transmitted in the clear. However if $ N $ is at all predictable an eavesdropper can interrogate the car key with the next $ N $, record $ \{ T, N \}_{KT} $ and transmit it to the car.
+The engine transmits a nonce $ N $ to the car key. The car key encrypts token $ T $ and $ N $ with shared key $ KT $. The engine decrypts the message, verifies that $ T $ is valid and that $ N $ is the same, and if so the engine starts. As the engine ($ E $) generates $ N $ there is no need to check if it is fresh, and neither $ T $ or $ KT $ are transmitted in the clear. However if $ N $ is at all predictable an eavesdropper can interrogate the car key with the next $ N $, record $ \{ T, N \}_{KT} $ and transmit it to the car.
 
 \subsubsection{Two factor authentication}
 Involves a user $ U $, password generator $ P $ and server $ S $. Used for smart card readers and other systems utilising two factor authentication.
@@ -161,7 +228,7 @@ The objective of $ A $ and $ B $ is to establish a session key that can be used 
 \subsubsection{Needham-Schroeder protocol}
 A protocol that appeared in 1978, where $ A $ and $ B $ attempt to establish a session key $ K_{AB} $ using trusted third party $ S $.
 \begin{enumerate}
-	\item $ A \rightarrow S : A, B, N_{A} $
+	\item $ A \rightarrow S : A, B, N_{A} $ \hspace{6pt} ($ N_{A} $ prevents replay attacks utilising the message from \textit{2})
 	\item $ S \rightarrow A : \{ N_{A}, B, K_{AB}, \{ K_{AB}, A \}_{K_{BS}} \}_{K_{AS}} $
 	\item $ A \rightarrow B : \{ K_{AB}, A \}_{K_{BS}} $
 	\item $ B \rightarrow A : \{ N_{B} \}_{K_{AB}}  $
@@ -186,7 +253,7 @@ $ A $ asks $ S $ for access to $ B $ (\textit{1}). $ S $ returns  a key $ K_{AB}
 	\item $ A \rightarrow B : \{ T_{S}, L, K_{AB}, A \}_{K_{BS}}, \{ A, T_{A} \}_{K_{AB}} $
 	\item $ B \rightarrow A : \{ T_{A} + 1 \}_{K_{AB}} $
 \end{enumerate}
-Most vulnerabilities for Kerberos are \textbf{implementation vulnerabilities}. For example synchronisation issues between different machines could facilitate a complex attack regardless of the presence of $ L $, or an attacker could impersonate the authentication server $ X $ to retrieve credentials (the password) that would allow for them to impersonate $ A $.
+The most significant vulnerabilities of Kerberos are \textbf{synchronisation differences} between the clocks of different machines, either unintentionally or as part of a deliberate attack. Alternatively an attacker could impersonate the authentication server $ X $ to retrieve credentials (the password) that would allow for them to impersonate $ A $.
 
 \subsection{Managing public keys}
 The aim is to \textbf{bind keys to users}, for example $ A $ to $ K_{A} $. It is difficult to guarantee this. A \textbf{certification authority} acts as a \textbf{trusted third party} that signs (guarantees) a certificate containing the user identity, valid period for the certificate and public keys for signing and encryption. A certificate can be described symbolically as:
@@ -206,9 +273,10 @@ The aim is to \textbf{bind keys to users}, for example $ A $ to $ K_{A} $. It is
 
 \subsection{Methods of access control}
 \textbf{Authentication} is only part of managing access. The principles of \textbf{least privilege} and \textbf{separation of privilege} must be applied after successful authentication. An \textbf{access control matrix} (\textbf{ACM}) defines permissions for each user, with column headings as objects, row headings as users and matrix values as binary values representing the permission level (expressed using \textit{r}, \textit{w} and \textit{x} in written form for read, write and execution rights). Although access control matrices \textbf{can} be used to implement protection mechanisms they do not scale well. \np
-Alternatively a more compact structure could define \textbf{roles} that are assigned permissions. Users are assigned  a role, and have the permissions of the role. Such roles can be expressed in hierarchies facilitating inheritance of permissions. Improvements such as this improve \textbf{economy of mechanism} and are easier for administrators to use. \np
+Alternatively a more compact structure could define \textbf{groups} or \textbf{roles} that are assigned permissions. Users are assigned  a role, and have the permissions of the role. Such roles can be expressed in hierarchies facilitating inheritance of permissions. Improvements such as this improve \textbf{economy of mechanism} and are easier for administrators to use. \np
 Access control lists (\textbf{ACLs}) are a way of storing permissions (through distributed representation of ACMs) that are well suited to environments were protection needs to be data-oriented and there are few users. Access rules are distributed into lists for each object, each of which is equivalent to a \textbf{single column} of a \textbf{access control matrix} (in that permissions for each user are still stored). ACLs are used by both \textbf{UNIX} and \textbf{Windows} (in a modified form) systems. \np
-An alternative representation of ACMs is \textbf{capabilities}, which can be seen as an inverse representation to \textbf{ACLs} where permissions are distributed into rows of the ACM. Each permission object contains permissions for a single user, for each object that permissions are required for. Use of this representation is uncommon as changing permissions for a single object can become difficult as capabilities for every user must be modified, rather than just a single ACL for the object.
+An alternative representation of ACMs is \textbf{capabilities}, which can be seen as an inverse representation to \textbf{ACLs} where permissions are distributed into rows of the ACM. Each permission object contains permissions for a single user, for each object that permissions are required for. Use of this representation is uncommon as changing permissions for a single object can become difficult as capabilities for every user must be modified, rather than just a single ACL for the object. \np
+Note that \textbf{Windows} attempts to \textbf{combine ACLs and capabilities} to maximise efficiency and performance.
 
 \subsection{Bell La Padula model}
 The \textbf{Bell La Padula} (BLP) model introduced the idea of a \textbf{reference monitor}, parts of the operating system designed to mediate access control decisions. Access control is mandatory for all objects, and is \textbf{role based}. There are multiple levels of classification (top secret, secret, confidential and unclassified), and clearance is required to read them. The system is focused on \textbf{confidentiality} as opposed to integrity or availability. \textbf{Each document} is classified at \textbf{one security level}, \textbf{each user} has clearance \textbf{up to one security level} and a document can only be accessed by users or processes with clearance at the same or higher security level. Additional `need to know' basis restrictions can be imposed on specific documents. \textbf{Information flow control} is based on \textbf{two properties}:
@@ -237,15 +305,16 @@ Trusted computing is intended to assure \textbf{platform integrity} (guarantee h
 \subsection{What goes wrong}
 
 \subsubsection{Root access through `setuid'}
-For a \textbf{UNIX} user to change their password, they require root access to write to the \textit{/usr/bin/passwd} file. The feature used is \textit{setuid}, that allows access without privilege and therefore causing vulnerability to attack:
+For a \textbf{UNIX} user to change their password, they require root access to write to the \textit{/usr/bin/passwd} file. The `passwd' utility is used, that has a \textit{setuid} bit (flag) set, allowing it to run as root even when executed by an unprivileged user:
 \begin{itemize}
+	\item If vulnerable code containing \textbf{setuid} is exploited, as the process is running as root, an attacker can \textbf{run code as root}, potentially opening a shell for full \textbf{root access} to the system.
 	\item If a file is opened by a process such as \textit{setuid} that runs as root and a child process is created, it inherits all file descriptors and could gain root access to system files. This can be fixed by ensuring all files are closed before forking a child process.
 	\item The program could close with files still open. 
 \end{itemize}
-The \textit{setuid} utility is also vulnerable to \textbf{buffer overrun} and \textbf{stack smashing} attacks.
+The \textit{setuid} utility is also vulnerable to \textbf{buffer overflow} (\textbf{buffer overrun}/\textbf{stack smashing}) attacks.
 
 \subsubsection{Buffer overflow}
-Some languages such as C++ do not do \textbf{bounds checking} (checking the size of arguments), so part of a long argument passed to a program by an attacker may be written to memory space outside of that allocated for the data. This could allow for it to be run as code, producing the potential for an attacker to take control of a system. Trailing bytes of the argument (those beyond the intended argument length) usually have a \textbf{landing pad} of \textbf{no operation} (\textbf{NOP}) commands that are ignored during program execution, a \textbf{NOP sled}. This means that a program jump to anywhere in the large memory space covered by the `sled' will result in the malicious code at the end of it being executed in full.
+Some languages such as C++ do not perform \textbf{bounds checking} (checking the size of arguments), so part of a long argument passed to a program by an attacker may be written to memory space outside of that allocated for the data. This could allow for it to be run as code, producing the potential for an attacker to take control of a system. Trailing bytes of the argument (those beyond the intended argument length) usually have a \textbf{landing pad} of \textbf{no operation} (\textbf{NOP}) commands that are ignored during program execution, a \textbf{NOP sled}. This means that a program jump to anywhere in the large memory space covered by the `sled' will result in the malicious code at the end of it being executed in full. These easiest way to prevent this is to \textbf{enforce bounds checking}, checking whether arguments are of the correct size and either reporting error or truncating them if they are not.
 
 \subsection{Assumptions behind software}
 \begin{enumerate}
@@ -411,5 +480,14 @@ The main problem with this protocol is the $ PMK $, if $ E $ knows this or obtai
 
 \section{Forensics}
 
+\textbf{Key points from lectures}
+\begin{itemize}
+	\item \textbf{Chain of custody}: documentation of who has control and custody at all times should be kept, so that a credible case that is has not been tampered with can be made.
+	\item \textbf{Seizure}: a specialist task for computer forensics. There is debate as to whether a the power should be left on for running devices, as removing power can prevent shutdown scripts but it also can result in loss of memory. If a device is switched off, it should remain that way.
+	\item \textbf{Storage media}: dynamic RAM is volatile, data is lost when power is removed. But hard drives and solid state drives are persistent. Cooling memory (\textbf{cold booting}) can slow down memory loss on RAM.
+	\item \textbf{Acquiring disk images}: can be done physically and is easier if a disk is removed. A \textbf{forensic disk controller} can intercept commands that would modify the contents of a disk. \textbf{Taking hashes} of both the original disk and a copy can \textbf{prevent} against \textbf{allegations of tampering}.
+	\item \textbf{Analysis}: could involve simple trawling, or a reconstruction of the timeline of a filesystem.
+	\item  \textbf{Detecting image manipulation}: \textbf{error level analysis} can be used, that detects whether differences between an image and a compressed form of the image are uniform. If not then modification has occurred.
+\end{itemize}
 
 \end{document}
