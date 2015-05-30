@@ -6,7 +6,7 @@
 \begin{document}
 
 \tableofcontents
-\pagebreak
+
 
 \section{Principles of security}
 
@@ -45,7 +45,9 @@ In the case of \textbf{passwords} it is also a possibility that two users will h
 
 \subsubsection{Hash chains and rainbow tables}
 The optimal way of inverting a hash would be the use of a lookup table containing mappings of all possible (or at least all likely) hashes to their original plaintext equivalents. This would require a \textbf{massive amount of memory}. A solution to this is \textbf{hash chains}, that are effectively a way of \textbf{compressing mappings} between plaintexts and hashes. \np
-This is achieved by building \textbf{chains} that move between \textbf{plaintexts} and \textbf{hashes}. A \textbf{reduction function} $ R $ is used to convert hashes to plaintexts (not invert them, reduction is part of building the chain). A reduction function can be any function that converts a hash to a valid plaintext, for example the first 10 characters of the hash might be taken if you know all the passwords you are trying to crack are 10 characters. \np
+This is achieved by building \textbf{chains} that move between \textbf{plaintexts} and \textbf{hashes}. A \textbf{reduction function} $ R $ is used to convert hashes to plaintexts (not invert them, reduction is part of building the chain). A reduction function can be any function that converts a hash to a valid plaintext, for example the first 10 characters of the hash might be taken if you know all the passwords you are trying to crack are 10 characters.
+\pagebreak
+\\
 Chain $ i $ of length $ j $ is built for hashing function $ H $ as follows:
 \begin{enumerate}
 	\item Generate random valid plaintext $ m_{i,1} $ and set the `current message number' $ c $ to 1
@@ -71,18 +73,19 @@ Encryption and decryption algorithms must be \textbf{bijective}. For every plain
 A \textbf{cryptanalyst} could know parts of $ M $, $ C $ or both and can perpetrate different kinds of attacks to find encryption key $ k $ using either ciphertext, or known pairs of plaintext and ciphertext.
 
 \subsection{Symmetric encryption}
-\textbf{Stream ciphers} are an example of \textbf{symmetric encryption}. Each digit in a \textbf{plaintext stream} is encrypted with a digit of the \textbf{keystream}. Examples of stream ciphers include \textbf{Caesar} and \textbf{Viginere} ciphers as well as \textbf{one time pad}. \np
+\textbf{Stream ciphers} are an example of \textbf{symmetric encryption}. Each digit in a \textbf{plaintext stream} is encrypted with a digit of the \textbf{keystream}. Examples of stream ciphers include \textbf{Caesar} and \textbf{Vigen\`{e}re} ciphers as well as \textbf{one time pad}. \np
 \textbf{Block ciphers} encrypt blocks of text, padding if necessary. Examples include the \textbf{Playfair} and \textbf{Hill} ciphers.
 
-\subsubsection{Vigenere cipher}
-The Vigenere ciper uses the representation used by most stream ciphers, that `A' = 0, `B' = 1 ... 'Z' = 25, allowing for modulo 26 arithmetic. A \textbf{running key} is used, in which the complete key is a string repeated to the length of the plaintext. For example the full key for initial key `run' used to encode string `hello' is `runru.' Encoding then takes place using:
+\subsubsection{Vigen\`{e}re cipher}
+The Vigen\`{e}re ciper uses the representation used by most stream ciphers, that `A' = 0, `B' = 1 ... `Z' = 25, allowing for modulo 26 arithmetic. A \textbf{running key} is used, in which the complete key is a string repeated to the length of the plaintext. For example the full key for initial key `run' used to encode string `hello' is `runru.' Encoding then takes place using:
 \[
 	C = P + K\ mod\ 26
 \]
 The plaintext is encoded one character at a time, using an offset value taken from the keystream (a stream is a string provided 1 character, or other unit, at a time) to produce the ciphertext. The \textbf{Caesar cipher} is identical to this, except the \textbf{keystream used} is the \textbf{alphabet}.
 
+
 \subsubsection{Hill cipher}
-In the \textbf{Hill cipher} (a block cipher), the same alphabetic representation as the Vigenere cipher is used. Messages and represented as column vectors of size $ n $, and the \textbf{encryption key} as a $ n \times n $ matrix. The \textbf{decryption key} is the inverse of the \textbf{encryption key}. To encrypt and decrypt the relevant key is multiplied by the relevant text, and the result is taken modulo 26. For example to encrypt `HI' with the key below:
+In the \textbf{Hill cipher} (a block cipher), the same alphabetic representation as the Vigen\`{e}re cipher is used. Messages and represented as column vectors of size $ n $, and the \textbf{encryption key} as a $ n \times n $ matrix. The \textbf{decryption key} is the inverse of the \textbf{encryption key}. To encrypt and decrypt the relevant key is multiplied by the relevant text, and the result is taken modulo 26. For example to encrypt `HI' with the key below:
 \[
 	\left(
 	\begin{array}{c c}
@@ -335,6 +338,7 @@ Some languages such as C++ do not perform \textbf{bounds checking} (checking the
 		\item Unhandled exceptions are frequently associated with bugs.
 		\item These problems can be addressed by testing that components are as expected, that they load properly and through careful exception handling.
 	\end{itemize}
+	\pagebreak
 	\item \textbf{Data can be trusted implicitly}
 	\begin{itemize}
 		\item Trust may be extended based on identification without authorisation.
@@ -370,7 +374,9 @@ The \textbf{Morris worm} exploited vulnerabilities in: \textbf{rsh} (allows for 
 	\item \textbf{finger}: provides user information, vulnerable to buffer overflow due to use of \textbf{strcopy} C function.
 	\item \textbf{sendmail}: an email router, contained a back door that was exploited to establish a shell.
 \end{itemize}
-The worm used \textbf{rsh} or \textbf{sendmail} to establish a shell running on a target machine that was used to copy across a \textbf{grappling hook} C program that was run with command line arguments, including the IP of the source machine. The grappling hook then copied across and installed a worm binary. One installed the binary renamed itself as \textbf{sh} (a shell), gathered information about possible targets using standard utilities (such as \textbf{netstat}), used a dictionary attack to try and break user passwords and look for machines where they might have a valid login and then tried to establish a shell on target machines using vulnerabilities. \np
+The worm used \textbf{rsh} or \textbf{sendmail} to establish a shell running on a target machine that was used to copy across a \textbf{grappling hook} C program that was run with command line arguments, including the IP of the source machine. The grappling hook then copied across and installed a worm binary. One installed the binary renamed itself as \textbf{sh} (a shell), gathered information about possible targets using standard utilities (such as \textbf{netstat}), used a dictionary attack to try and break user passwords and look for machines where they might have a valid login and then tried to establish a shell on target machines using vulnerabilities.
+\pagebreak
+\\
 Although there was \textbf{no malicious payload} but it was highly effective and damaging. The code was supposed to check for existing infections and terminate itself, but a bug meant \textbf{some infections were immortal}, overwhelming the host. Great care was taken to camouflage processes and code (hidden as shells and encrypted). \np
 The worm demonstrated the vulnerability of networked computers and the existing software infrastructure. Its creator Robert Morris was prosecuted, and the \textbf{Computer Emergency Response Team} at Carnegie Mellon University was set up as a consequence.
 
@@ -423,6 +429,7 @@ This type of attack is called \textbf{ARP cache poisoning}. It can be prevented 
 	\item A \textbf{ping flood} is a \textbf{DDOS} (distributed denial of service) attack that floods a victim with \textbf{ICMP} (internet control message protocol) ping requests: if the target responds both ingoing and outgoing traffic are flooded.
 	\item A \textbf{Smurf attack} is a \textbf{DDOS} attack in which ICMP packets are sent to a large number of computers across a network, with the source address set to that of the victim's computer. Most computers on the network will respond, flooding the victim's incoming traffic.
 \end{itemize}
+\pagebreak
 Network layer attacks can be defended in a number of ways:
 \begin{itemize}
  \item Blocking packets with source IPs of computers in a LAN from passing border routers from outside the LAN (would prevent a Smurf attack using computers inside of the LAN launched from outside it).
@@ -444,7 +451,8 @@ If $ E $ can predict $ x $ and $ y $ the session can be \textbf{hijacked} (a \te
 \subsection{Application layer vulnerabilities}
 
 \subsubsection{TLS and HTTPS}
-By default HTTP requests and responses are delivered without any encryption through TCP on port 80. \textbf{TLS} (\textbf{Transport Layer Security}) provides security on top of TCP/IP, and was formerly the Secure Sockets Layer (SSL). TLS \textbf{encrypts} network traffic and \textbf{authenticates} web servers using certificates from \textbf{authentication authorities}. On the web TLS is used to provide \textbf{HTTPS} (HTTP over TLS) in which all headers, page contents and cookies are encrypted. To initiate a secure exchange between client $ A $ and server $ B $ a handshake takes place:
+By default HTTP requests and responses are delivered without any encryption through TCP on port 80. \textbf{TLS} (\textbf{Transport Layer Security}) provides security on top of TCP/IP, and was formerly the Secure Sockets Layer (SSL). TLS \textbf{encrypts} network traffic and \textbf{authenticates} web servers using certificates from \textbf{authentication authorities}. On the web TLS is used to provide \textbf{HTTPS} (HTTP over TLS) in which all headers, page contents and cookies are encrypted. \np
+To initiate a secure exchange between client $ A $ and server $ B $ a handshake takes place:
 \begin{enumerate}
 	\item $ A \rightarrow B : A, A\#, N_{A}, Cipher\ Preferences $ - $ A $ sends their identity, session key (\#), nonce and cipher preferences.
 	\item $ B \rightarrow A : B, B\#, N_{B}, Cipher\ Choice $ - $ B $ returns the same information but with a cipher choice \textbf{and a certificate}.
@@ -479,7 +487,6 @@ On a wireless network it is almost impossible to prevent silent eavesdropping wi
 The main problem with this protocol is the $ PMK $, if $ E $ knows this or obtains it by brute force she can obtain $ PTK $.
 
 \section{Forensics}
-
 \textbf{Key points from lectures}
 \begin{itemize}
 	\item \textbf{Chain of custody}: documentation of who has control and custody at all times should be kept, so that a credible case that is has not been tampered with can be made.
