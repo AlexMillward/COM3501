@@ -143,6 +143,15 @@ So `HI' with this key encrypts to `MM.' To decrypt:
 	mod\ 26
 \]
 
+\subsection{Playfair Cipher}
+This is a \textbf{block cipher} where the block size is always two. The \textbf{key} consists of a \textbf{5 x 5 grid}, the letter \textit{j} in text is replaced with the letter \textit{i}, and each position on the grid is filled with a unique non-\textit{j} letter. Repeated letters are separated with \textit{x}, for example $ ee \rightarrow exe $ and if, after this, the number of letters is odd \textit{z} is appended to the end so as to make the total number of letters even. There are 3 rules for \textbf{encryption of a pair}:
+\begin{enumerate}
+	\item The letters are on the \textbf{same row} on the grid: each letter in the pair is replaced with the letter to its right on the grid. If it is the furthest right on the grid, it is replaced with the furthest left, as rows and columns wrap.
+	\item The letters are in the \textbf{same column} on the grid: each letter in the pair is replaced with the letter beneath it. Again wrapping applies so the bottom letter in a column is replaced with the top.
+	\item The items are on \textbf{different rows and columns}. The two letters form the corners of a rectangle on a grid. Swap each letter with the letter that is in the \textbf{horizontally opposite} corner of the rectangle.
+\end{enumerate}
+Intuitively, for decryption, rules \textit{1} and \textit{2} are inverted. For rows the letter to the left is taken, for columns the letter above. Decryption where \textit{3} applies is the same as encryption, which reverses the initial swap made for encryption.
+
 \subsection{Asymmetric encryption}
 For symmetric encryption, the encryption and decryption keys are the same. For \textbf{asymmetric encryption} a \textbf{public key} is used by anyone to encrypt a message, that can only then be decrypted with a \textbf{private key} held by the individual who generated both keys. Such encryption methods depend largely on \textbf{prime numbers} and \textbf{modular arithmetic}.
 
