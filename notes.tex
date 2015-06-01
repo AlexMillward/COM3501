@@ -362,7 +362,7 @@ Some languages such as C++ do not perform \textbf{bounds checking} (checking the
 \section{Malware}
 
 \subsection{Viruses}
-A computer virus is \textbf{malicious code} that attaches itself to a host that could be another executable program, the boot sector of a disk or a document that supports macros. Viruses have been more prevalent on Windows machine as it's easier to infect files owned by other users or system files. As with biological viruses, computer viruses create copies of themselves in new hosts and infect other machines when the host is copied. \np
+A computer virus is \textbf{malicious code} that attaches itself to a host that could be another executable program, the boot sector of a disk or a document that supports macros. Viruses have been more prevalent on Windows machine as it's easier to infect files owned by other users or system files. As with biological viruses, computer viruses create copies of themselves in new hosts. \np
 \textbf{Virus detection} involves searching for the characteristics of known viruses in memory. Viruses can be designed to try and avoid detection through segmenting code, encryption and the presence of junk inbetween code segments. \textbf{Polymorphic viruses} us a different encryption key each time they copy, whilst \textbf{metamorphic viruses} mutate the junk between code segments.
 
 \subsection{Worms}
@@ -371,17 +371,17 @@ Unlike viruses, worms do \textbf{not infect existing executables}. They are \tex
 	\frac{\delta I}{\delta t} = \beta I(t) [N - I(t)]
 \]
 \subsubsection{The Morris worm}
-The \textbf{Morris worm} exploited vulnerabilities in: \textbf{rsh} (allows for a remote shell to be est), \textbf{finger} (provides user information and vulnerable to buffer overflow) and \textbf{sendmail}
+The \textbf{Morris} or \textbf{internet worm} exploited vulnerabilities in: \textbf{rsh} (allows for a remote shell to be est), \textbf{finger} (provides user information and vulnerable to buffer overflow) and \textbf{sendmail}
 \begin{itemize}
 	\item \textbf{rsh}: allows for a remote shell to be established.
 	\item \textbf{finger}: provides user information, vulnerable to buffer overflow due to use of \textbf{strcopy} C function.
 	\item \textbf{sendmail}: an email router, contained a back door that was exploited to establish a shell.
 \end{itemize}
-The worm used \textbf{rsh} or \textbf{sendmail} to establish a shell running on a target machine that was used to copy across a \textbf{grappling hook} C program that was run with command line arguments, including the IP of the source machine. The grappling hook then copied across and installed a worm binary. One installed the binary renamed itself as \textbf{sh} (a shell), gathered information about possible targets using standard utilities (such as \textbf{netstat}), used a dictionary attack to try and break user passwords and look for machines where they might have a valid login and then tried to establish a shell on target machines using vulnerabilities.
+The worm used \textbf{rsh} or \textbf{sendmail} to establish a shell running on a target machine that was used to copy across a \textbf{grappling hook} C program that was run with command line arguments, including the IP of the source machine. The grappling hook then copied across and installed a worm binary. One installed the binary renamed itself as \textbf{sh} (a shell), gathered information about possible targets using standard utilities (such as \textbf{netstat}), used a dictionary attack to try and break user passwords and look for machines where they might have a valid login and then tried to establish a shell on target machines using vulnerabilities. Data strings were encrypted, although only using a \textbf{Caesar cipher}.
 \pagebreak
 \\
-Although there was \textbf{no malicious payload} but it was highly effective and damaging. The code was supposed to check for existing infections and terminate itself, but a bug meant \textbf{some infections were immortal}, overwhelming the host. Great care was taken to camouflage processes and code (hidden as shells and encrypted). \np
-The worm demonstrated the vulnerability of networked computers and the existing software infrastructure. Its creator Robert Morris was prosecuted, and the \textbf{Computer Emergency Response Team} at Carnegie Mellon University was set up as a consequence.
+Although there was \textbf{no malicious payload} but it was highly effective and damaging. The code was supposed to check for existing infections and terminate itself, but a bug meant \textbf{some infections were immortal}, overwhelming the host and eventually clogging up the internet at the time (\textbf{Arpanet}) entirely. Great care was taken to camouflage processes and code (hidden as shells and encrypted). \np
+The worm demonstrated the vulnerability of networked computers and the existing software infrastructure. Its creator Robert Morris was prosecuted, and the \textbf{Computer Emergency Response Team} at Carnegie Mellon University was set up as a consequence. Internet was, however, largely restored within a couple of days. The fact that it only affected machines derived from \textbf{Berkeley UNIX} allowed for quick fixes to be made, and limited the worm's spread.
 
 \subsubsection{The Conficker worm}
 Exploits a vulnerability in \textbf{svchost.exe} (container for Windows services) on Windows machines. It spreads using a \textbf{buffer overflow} vulnerability in \textbf{RPC} (remote procedure call, a method of inter-process communication) and the vulnerable port 445. It can also be spread by network sharing and removable media. It attempts to gain write access with the signed in user, and failing this, cracks user passwords until write permissions are obtained. \np
