@@ -248,7 +248,7 @@ $ A $ asks $ S $ for access to $ B $ (\textit{1}). $ S $ returns  a key $ K_{AB}
 \begin{enumerate}
 	\item $ A \rightarrow X : N_{A}, A, S $
 	\item $ X \rightarrow A : \left\lbrace K_{AS}, N_{A}, \{ T_{X}, L, K_{AS} \}_{K_{XS}} \right\rbrace_{K_{AX}} $
-	\item $ A \rightarrow S : \left\lbrace A, B, T_{A}, \{ T_{X}, L, K_{AS} \}_{K_{XS}} \right\rbrace_{K_{AS}} $
+	\item $ A \rightarrow S : \left\lbrace A, B, T_{A} \right\rbrace_{K_{AS}}, \{ T_{X}, L, K_{AS} \}_{K_{XS}} $
 	\item $ S \rightarrow A : \{ T_{S}, L, K_{AB}, B, \{ T_{S}, L, K_{AB}, A \}_{K_{BS}} \}_{K_{AS}} $
 	\item $ A \rightarrow B : \{ T_{S}, L, K_{AB}, A \}_{K_{BS}}, \{ A, T_{A} \}_{K_{AB}} $
 	\item $ B \rightarrow A : \{ T_{A} + 1 \}_{K_{AB}} $
