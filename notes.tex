@@ -265,9 +265,7 @@ $ A $ asks $ S $ for access to $ B $ (\textit{1}). $ S $ returns  a key $ K_{AB}
 The most significant vulnerabilities of Kerberos are \textbf{synchronisation differences} between the clocks of different machines, either unintentionally or as part of a deliberate attack. Alternatively an attacker could impersonate the authentication server $ X $ to retrieve credentials (the password) that would allow for them to impersonate $ A $.
 
 \subsection{Managing public keys}
-The aim is to \textbf{bind keys to users}, for example $ A $ to $ K_{A} $. It is difficult to guarantee this. A \textbf{certification authority} acts as a \textbf{trusted third party} that signs (guarantees) a certificate containing the user identity, valid period for the certificate and public keys for signing and encryption.
-\pagebreak
-\\
+The aim is to \textbf{bind keys to users}, for example $ A $ to $ K_{A} $. It is difficult to guarantee this. A \textbf{certification authority} acts as a \textbf{trusted third party} that signs (guarantees) a certificate containing the user identity, valid period for the certificate and public keys for signing and encryption. \np
 A certificate can be described symbolically as:
 \[
 	C_{A} = Sig_{K_{S}}(T_{S}, L, A, K_{A}, V_{A})
