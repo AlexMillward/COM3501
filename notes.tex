@@ -465,7 +465,7 @@ By default HTTP requests and responses are delivered without any encryption thro
 To initiate a secure exchange between client $ A $ and server $ B $ a handshake takes place:
 \begin{enumerate}
 	\item $ A \rightarrow B : A, A\#, N_{A}, Cipher\ Preferences $ - $ A $ sends their identity, session key (\#), nonce and cipher preferences.
-	\item $ B \rightarrow A : B, B\#, N_{B}, Cipher\ Choice $ - $ B $ returns the same information but with a cipher choice \textbf{and a certificate}.
+	\item $ B \rightarrow A : B, B\#, N_{B}, CS, Cipher\ Choice $ - $ B $ returns the same information but with a cipher choice \textbf{and a certificate} ($ CS $ that contains public key $ K_{B} $).
 	\item \textbf{Certificate exchange}: $ A $ compares the certificate from $ B $ to a root certificate held in the browser, or one held by a trusted third party. $ B $ may also ask $ A $ for a certificate at this point.
 	\item \textbf{Key exchange}: $ A $ computes a random pre-master key $ K_{0} $ that is sent to $ B $ encrypted with the public key of $ B $, $ K_{B} $. $ A $ and $ B $ independently compute master keys $ K_{1} $ and session keys $ K_{AB} $ form information already exchanged.
 	\begin{itemize}
@@ -476,25 +476,26 @@ To initiate a secure exchange between client $ A $ and server $ B $ a handshake 
 	\item $ A $ sends $ B $ `finished' together with a \textbf{message authentication code} of messages so far, encrypted with $ K_{AB} $. If $ B $ can decrypt, then $ A $ is authenticated to $ B $. Otherwise the session ends with an error.
 	\item $ B $ sends a similar message to $ A $.
 \end{enumerate}
-\textbf{Vulnerabilities} can exist where websites supply forged or expired certificates, or if a browser passes responsibility for checking an invalid certificate to the user who will often just click OK.
+Note that this is a \textbf{severe simplification} of the full protocol, of which there are numerous variants. \textbf{Vulnerabilities} can exist where websites supply forged or expired certificates, or if a browser passes responsibility for checking an invalid certificate to the user who will often just click OK.
 
 \subsubsection{XXS (cross site scripting)}
 \textbf{XXS} or \textbf{cross site scripting} enables attackers to inject client-side script (JavaScript, ActiveX etc.) into web pages viewed by other users. It could be used to retrieve cookies or data being displayed to a user to an attacker for example. \np
 There are numerous means of achieving injection. Malicious URLs in emails could redirect to a trusted website vulnerable to XXS in a way that allows for XXS (parameters that can be set to \textbf{script} tags for example). Alternatively websites with dynamic content can be injected if data is not managed safely, for example a \textbf{script} tag could be provided as input for a profile description, and executed when another user viewed the resulting profile page.
 
 \subsubsection{SQL injection}
-Similar to some variants of \textbf{XXS}, where a user provides input that is an SQL query or part of an SQL query where one is not expected. This could be used by a malicious user to extend part of a \textbf{select} query to also retrieve confidential data about other users from a table for example. In the case of \textbf{MySQL} and other common variants this can be prevented through the use of \textbf{prepared statements}, which are part of the \textbf{MySQL protocol}.
+Similar to some variants of \textbf{XXS}, where a user provides input that is an SQL query or part of an SQL query where one is not expected. This could be used by a malicious user to extend part of a \textbf{select} query to also retrieve confidential data about other users from a table for example. In the case of \textbf{MySQL} and other common variants this can be prevented through the use of \textbf{prepared statements}, which are part of the \textbf{MySQL} and some other \textbf{SQL implementations}, or the use of \textbf{context-specific input checking}.
 
 \subsection{Wireless networks}
 On a wireless network it is almost impossible to prevent silent eavesdropping with tools such as \textit{Wireshark}. Many wireless stations even broadcast the network name and security measure. Access can be restricted to a set of MAC addresses although an attacker can easily reconfigure their machine to have an authorised MAC address. \np
 \textbf{Encryption} such as \textbf{WEP} (\textbf{wired equivalent privacy}) can help, although WEP is \textbf{broken} and has been replaced with \textbf{WPA} (Wi-Fi protected access) as well as \textbf{WPA2} that enforces \textbf{AES} (advanced encryption standard) encryption. WPA uses a \textbf{four-way handshake} to establish a connection between a router and a client. It is assumed that $ AP $ (access point) and $ STA $ (client station) have a shared key $ PMK $ (pairwise master key) entered by $ A $ into their machine ($ STA $). A $ PTK $ (pairwise transient key) must be generated for encryption.
 \begin{enumerate}
 	\item $ AP \rightarrow STA : N_{A} $
-	\item $ STA \rightarrow AP : N_{S}, \{ Message\ integrity\ code\ (MIC) \}_{PTK} $
+	\item $ STA \rightarrow AP : N_{S}, \{ Message\ integrity\ code\ (MIC) \}_{PTK} $ \\
+	\textbf{Note:} $ PTK = hash(PMK, N_{A}, N_{S}, MAC_{A}, MAC_{B}) $ where $ MAC_{A} $ and $ MAC_{B} $ are \textbf{media access control addresses} and \textbf{not message authentication codes}.
 	\item $ AP \rightarrow STA : \{ Group\ temporal\ key\ (GTK) \}_{PTK}, \{ MIC \}_{PTK} $
 	\item $ STA \rightarrow AP : Acknowledgement $
 \end{enumerate}
-The main problem with this protocol is the $ PMK $, if $ E $ knows this or obtains it by brute force she can obtain $ PTK $.
+The main problem with this protocol is the $ PMK $, if $ E $ knows this or obtains it by brute force she can obtain $ PTK $. The objective of the protocol  is to minimise exposure of the $ PMK $.
 
 \section{Forensics}
 \textbf{Key points from lectures}
