@@ -498,7 +498,7 @@ The following series of transactions have been \textbf{simplified significantly}
 \begin{enumerate}
 	\item $ AP \rightarrow STA : N_{A} $
 	\item $ STA \rightarrow AP : N_{S}, \{ Message\ integrity\ code\ (MIC) \}_{PTK} $ \\
-	\textbf{Note:} $ hash(PMK, N_{A}, N_{S}, MAC_{A}, MAC_{B}) $ is taken where $ MAC_{A} $ and $ MAC_{S} $ are \textbf{media access control addresses} and \textbf{not message authentication codes}. This yields a \textbf{number of keys}, five of which form the $ PTK $. Two keys from the $ PTK $ and an additional key form the $ GTK $.
+	\textbf{Note:} $ hash(PMK, N_{A}, N_{S}, MAC_{A}, MAC_{S}) $ is taken where $ MAC_{A} $ and $ MAC_{S} $ are \textbf{media access control addresses} and \textbf{not message authentication codes}. This yields a \textbf{number of keys}, five of which form the $ PTK $. Two keys from the $ PTK $ and an additional key form the $ GTK $.
 	\item $ AP \rightarrow STA : \{ Group\ temporal\ key\ (GTK) \}_{PTK}, \{ MIC \}_{PTK} $
 	\item $ STA \rightarrow AP : Acknowledgement $
 \end{enumerate}
