@@ -463,19 +463,22 @@ If $ E $ can predict $ x $ and $ y $ the session can be \textbf{hijacked} (a \te
 
 \subsubsection{TLS and HTTPS}
 By default HTTP requests and responses are delivered without any encryption through TCP on port 80. \textbf{TLS} (\textbf{Transport Layer Security}) provides security on top of TCP/IP, and was formerly the Secure Sockets Layer (SSL). TLS \textbf{encrypts} network traffic and \textbf{authenticates} web servers using certificates from \textbf{authentication authorities}. On the web TLS is used to provide \textbf{HTTPS} (HTTP over TLS) in which all headers, page contents and cookies are encrypted. \np
-To initiate a secure exchange between client $ A $ and server $ B $ a handshake takes place:
+To initiate a secure exchange between client $ C $ and server $ S $ a handshake takes place:
 \begin{enumerate}
-	\item $ A \rightarrow B : A, A\#, N_{A}, Cipher\ Preferences $ - $ A $ sends their identity, session key (\#), nonce and cipher preferences.
-	\item $ B \rightarrow A : B, B\#, N_{B}, CS, Cipher\ Choice $ - $ B $ returns the same information but with a cipher choice \textbf{and a certificate} ($ CS $ that contains public key $ K_{B} $).
-	\item \textbf{Certificate exchange}: $ A $ compares the certificate from $ B $ to a root certificate held in the browser, or one held by a trusted third party. $ B $ may also ask $ A $ for a certificate at this point.
-	\item \textbf{Key exchange}: $ A $ computes a random pre-master key $ K_{0} $ that is sent to $ B $ encrypted with the public key of $ B $, $ K_{B} $. $ A $ and $ B $ independently compute master keys $ K_{1} $ and session keys $ K_{AB} $ form information already exchanged.
+	\item $ C \rightarrow S : C, C\#, N_{C}, Cipher\ Preferences $ - $ A $ sends their identity, session key (\#), nonce and cipher preferences.
+	\item $ S \rightarrow C : S, S\#, N_{S}, C_{S}, Cipher\ Choice $ - $ B $ returns the same information but with a cipher choice \textbf{and a certificate} ($ C_{S} $ that contains public key $ K_{S} $).
+	\item \textbf{Certificate exchange}: $ C $ compares the certificate from $ S $ to a root certificate held in the browser, or one held by a trusted third party. $ S $ may also ask $ C $ for a certificate at this point.
+	\item \textbf{Key exchange}: $ C $ computes a random pre-master key $ K_{0} $ that is sent to $ S $ encrypted with the public key of $ S $, $ K_{S} $. The keys $ K_{1} $, $ K_{CS} $ and $ K_{SC} $ are computed independently. 
 	\begin{itemize}
-		\item $ A \rightarrow B : \{ K_{0} \}_{K_{B}} $
-		\item $ K_{1} = hash(K_{0}, N_{A}, N_{B}) $
-		\item $ K_{AB} = hash(K_{1}, N_{A}, N_{B}) $
+		\item $ C \rightarrow S : \{ K_{0} \}_{K_{S}} $
+		\item $ K_{1} = hash_x(K_{0}, N_{C}, N_{S}) $
+		\item $ K_{CS} = hash_y(K_{1}, N_{C}, N_{S}) $
+		\item $ K_{SC} = hash_z(K_{1}, N_{C}, N_{S}) $ \\
+		\textbf{Note}: $ hash_y $ will usually be a different algorithm to $ hash_z $
 	\end{itemize}
-	\item $ A $ sends $ B $ `finished' together with a \textbf{message authentication code} of messages so far, encrypted with $ K_{AB} $. If $ B $ can decrypt, then $ A $ is authenticated to $ B $. Otherwise the session ends with an error.
-	\item $ B $ sends a similar message to $ A $.
+	\item $ C \rightarrow S : \{ finished, MAC(K_{1}, messages\ so\ far) \}_{K_{CS}} $ \\
+	\textbf{Note}: $ MAC $ is a \textbf{message authentication code}
+	\item $ S \rightarrow C : \{ finished, MAC(K_{1}, messages\ so\ far) \}_{K_{SC}} $
 \end{enumerate}
 Note that this is a \textbf{severe simplification} of the full protocol, of which there are numerous variants. \textbf{Vulnerabilities} can exist where websites supply forged or expired certificates, or if a browser passes responsibility for checking an invalid certificate to the user who will often just click OK.
 
@@ -489,10 +492,13 @@ Similar to some variants of \textbf{XSS}, where a user provides input that is an
 \subsection{Wireless networks}
 On a wireless network it is almost impossible to prevent silent eavesdropping with tools such as \textit{Wireshark}. Many wireless stations even broadcast the network name and security measure. Access can be restricted to a set of MAC addresses although an attacker can easily reconfigure their machine to have an authorised MAC address. \np
 \textbf{Encryption} such as \textbf{WEP} (\textbf{wired equivalent privacy}) can help, although WEP is \textbf{broken} and has been replaced with \textbf{WPA} (Wi-Fi protected access) as well as \textbf{WPA2} that enforces \textbf{AES} (advanced encryption standard) encryption. WPA uses a \textbf{four-way handshake} to establish a connection between a router and a client. It is assumed that $ AP $ (access point) and $ STA $ (client station) have a shared key $ PMK $ (pairwise master key) entered by $ A $ into their machine ($ STA $). A $ PTK $ (pairwise transient key) must be generated for encryption.
+\pagebreak
+\\
+The following series of transactions have been \textbf{simplified significantly}:
 \begin{enumerate}
 	\item $ AP \rightarrow STA : N_{A} $
 	\item $ STA \rightarrow AP : N_{S}, \{ Message\ integrity\ code\ (MIC) \}_{PTK} $ \\
-	\textbf{Note:} $ PTK = hash(PMK, N_{A}, N_{S}, MAC_{A}, MAC_{B}) $ where $ MAC_{A} $ and $ MAC_{B} $ are \textbf{media access control addresses} and \textbf{not message authentication codes}.
+	\textbf{Note:} $ hash(PMK, N_{A}, N_{S}, MAC_{A}, MAC_{B}) $ is taken where $ MAC_{A} $ and $ MAC_{S} $ are \textbf{media access control addresses} and \textbf{not message authentication codes}. This yields a \textbf{number of keys}, five of which form the $ PTK $. Two keys from the $ PTK $ and an additional key form the $ GTK $.
 	\item $ AP \rightarrow STA : \{ Group\ temporal\ key\ (GTK) \}_{PTK}, \{ MIC \}_{PTK} $
 	\item $ STA \rightarrow AP : Acknowledgement $
 \end{enumerate}
