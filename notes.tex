@@ -379,7 +379,7 @@ Unlike viruses, worms do \textbf{not infect existing executables}. They are \tex
 	\frac{\delta I}{\delta t} = \beta I(t) [N - I(t)]
 \]
 \subsubsection{The Morris worm}
-The \textbf{Morris} or \textbf{internet worm} exploited vulnerabilities in: \textbf{rsh} (allows for a remote shell to be est), \textbf{finger} (provides user information and vulnerable to buffer overflow) and \textbf{sendmail}
+The \textbf{Morris} or \textbf{internet worm} exploited vulnerabilities in:
 \begin{itemize}
 	\item \textbf{rsh}: allows for a remote shell to be established.
 	\item \textbf{finger}: provides user information, vulnerable to buffer overflow due to use of \textbf{strcopy} C function.
@@ -389,7 +389,7 @@ The worm used \textbf{rsh} or \textbf{sendmail} to establish a shell running on 
 \pagebreak
 \\
 Although there was \textbf{no malicious payload} but it was highly effective and damaging. The code was supposed to check for existing infections and terminate itself, but a bug meant \textbf{some infections were immortal}, overwhelming the host and eventually clogging up the internet at the time (\textbf{Arpanet}) entirely. Great care was taken to camouflage processes and code (hidden as shells and encrypted). \np
-The worm demonstrated the vulnerability of networked computers and the existing software infrastructure. Its creator Robert Morris was prosecuted, and the \textbf{Computer Emergency Response Team} at Carnegie Mellon University was set up as a consequence. Internet was, however, largely restored within a couple of days. The fact that it only affected machines derived from \textbf{Berkeley UNIX} allowed for quick fixes to be made, and limited the worm's spread.
+The worm demonstrated the vulnerability of networked computers and the existing software infrastructure. Its creator Robert Morris was prosecuted, and the \textbf{Computer Emergency Response Team} at Carnegie Mellon University was set up as a consequence. Internet was, however, largely restored within a couple of days. The fact that it only affected machines with operating systems derived from \textbf{Berkeley UNIX} allowed for quick fixes to be made, and limited the worm's spread.
 
 \subsubsection{The Conficker worm}
 Exploits a vulnerability in \textbf{svchost.exe} (container for Windows services) on Windows machines. It spreads using a \textbf{buffer overflow} vulnerability in \textbf{RPC} (remote procedure call, a method of inter-process communication) and the vulnerable port 445. It can also be spread by network sharing and removable media. It attempts to gain write access with the signed in user, and failing this, cracks user passwords until write permissions are obtained. \np
